@@ -31,6 +31,8 @@ import type {
   WebhookFireResponse,
   GenerateTitleRequest,
   GenerateTitleResponse,
+  ListBedrockModelsRequest,
+  ListBedrockModelsResponse,
 } from "./types";
 
 const API_BASE = "/api/proxy";
@@ -452,4 +454,15 @@ export async function testLlmConnection(
     body: JSON.stringify(request),
   });
   return handleResponse<TestLLMResponse>(response);
+}
+
+export async function listBedrockModels(
+  request: ListBedrockModelsRequest,
+): Promise<ListBedrockModelsResponse> {
+  const response = await fetch(`${API_BASE}/listBedrockModels`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  return handleResponse<ListBedrockModelsResponse>(response);
 }

@@ -27,6 +27,23 @@ class ConfigResponse(BaseModel):
     languages: list[LanguageOption]
 
 
+class ListBedrockModelsRequest(BaseModel):
+    aws_region: str = Field(..., description="AWS region for Bedrock", examples=["us-east-1"])
+    aws_access_key_id: str = Field(..., min_length=1, description="AWS access key ID")
+    aws_secret_access_key: str = Field(..., min_length=1, description="AWS secret access key")
+
+
+class BedrockModelInfo(BaseModel):
+    model_id: str = Field(..., description="Model identifier for API calls")
+    name: str = Field(..., description="Human-readable model name")
+    provider: str = Field("", description="Model provider (e.g. Anthropic, Amazon)")
+
+
+class ListBedrockModelsResponse(BaseModel):
+    models: list[BedrockModelInfo] = Field(..., description="Available Bedrock models")
+    error: str | None = Field(None, description="Error message if listing failed")
+
+
 class GetSpeakersRequest(BaseModel):
     transcript: str = Field(..., description="The transcript of the provided audio file", examples=[
                             "Speaker A: How are you?\nSpeaker B: I'm fine thanks"])

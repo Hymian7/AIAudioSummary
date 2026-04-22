@@ -406,6 +406,25 @@ export interface WebhookFireResponse {
   error?: string;
 }
 
+// === Bedrock Model Discovery types ===
+
+export interface BedrockModelInfo {
+  model_id: string;
+  name: string;
+  provider: string;
+}
+
+export interface ListBedrockModelsRequest {
+  aws_region: string;
+  aws_access_key_id: string;
+  aws_secret_access_key: string;
+}
+
+export interface ListBedrockModelsResponse {
+  models: BedrockModelInfo[];
+  error: string | null;
+}
+
 // === Preferences types ===
 
 export interface UserPreferences {

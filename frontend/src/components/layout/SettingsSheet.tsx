@@ -32,9 +32,9 @@ import { ChatbotSettings } from "@/components/settings/ChatbotSettings";
 import { KeytermsListSelector } from "@/components/settings/KeytermsListSelector";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApiKeys } from "@/hooks/useApiKeys";
-import { testLlmConnection, fireWebhook } from "@/lib/api";
+import { testLlmConnection, fireWebhook, listBedrockModels } from "@/lib/api";
 import { buildTestWebhookPayload } from "@/lib/webhook";
-import type { AzureConfig, BedrockConfig, LangdockConfig, ConfigResponse, LLMProvider, RealtimeSpeechModel, SummaryInterval, LLMFeature, FeatureModelOverride, CopyFormat, SaveFormat, ChatbotCopyFormat, KeytermsList, WebhookStandardTrigger, WebhookRealtimeTrigger } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, ConfigResponse, LLMProvider, RealtimeSpeechModel, SummaryInterval, LLMFeature, FeatureModelOverride, CopyFormat, SaveFormat, ChatbotCopyFormat, KeytermsList, WebhookStandardTrigger, WebhookRealtimeTrigger, BedrockModelInfo } from "@/lib/types";
 import { COPY_FORMAT_LABELS, SAVE_FORMAT_LABELS, CHATBOT_COPY_FORMAT_LABELS } from "@/lib/content-formats";
 
 interface SettingsSheetProps {
@@ -224,6 +224,45 @@ export function SettingsSheet({
 }: SettingsSheetProps) {
   const providers = config?.providers ?? [];
   const currentProvider = providers.find((p) => p.id === selectedProvider);
+
+  // Dynamic Bedrock model discovery
+  const [bedrockModels, setBedrockModels] = useState<string[]>([]);
+  const [bedrockModelsLoading, setBedrockModelsLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedProvider !== "bedrock" || !bedrockConfig?.aws_region || !bedrockConfig?.aws_access_key_id || !bedrockConfig?.aws_secret_access_key) {
+      setBedrockModels([]);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchModels = async () => {
+      setBedrockModelsLoading(true);
+      try {
+        const resp = await listBedrockModels({
+          aws_region: bedrockConfig.aws_region,
+          aws_access_key_id: bedrockConfig.aws_access_key_id,
+          aws_secret_access_key: bedrockConfig.aws_secret_access_key,
+        });
+        if (!cancelled && resp.models.length > 0) {
+          setBedrockModels(resp.models.map((m: BedrockModelInfo) => m.model_id));
+        }
+      } catch {
+        // Fall back to hardcoded list on error
+      } finally {
+        if (!cancelled) setBedrockModelsLoading(false);
+      }
+    };
+
+    // Debounce to avoid firing on every keystroke
+    const timer = setTimeout(fetchModels, 600);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [selectedProvider, bedrockConfig?.aws_region, bedrockConfig?.aws_access_key_id, bedrockConfig?.aws_secret_access_key]);
+
+  const effectiveModels = selectedProvider === "bedrock" && bedrockModels.length > 0
+    ? bedrockModels
+    : (currentProvider?.models ?? []);
+
   const [keyVersion, setKeyVersion] = useState(0);
   const handleKeyChange = useCallback(() => {
     setKeyVersion((v) => v + 1);
@@ -546,7 +585,7 @@ export function SettingsSheet({
 
                   {selectedProvider !== "azure_openai" ? (
                     <ModelSelector
-                      models={currentProvider?.models ?? []}
+                      models={effectiveModels}
                       selectedModel={selectedModel}
                       onModelChange={onModelChange}
                     />

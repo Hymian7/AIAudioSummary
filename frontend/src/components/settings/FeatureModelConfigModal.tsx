@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import type { LLMFeature, FeatureModelOverride, LLMProvider, ProviderInfo } from "@/lib/types";
+import type { LLMFeature, FeatureModelOverride, LLMProvider, ProviderInfo, BedrockModelInfo } from "@/lib/types";
 import { LLM_FEATURE_LABELS } from "@/lib/types";
 import { ProviderSelector } from "./ProviderSelector";
 import { ModelSelector } from "./ModelSelector";
@@ -19,6 +19,7 @@ import { AzureConfigForm } from "./AzureConfigForm";
 import { LangdockConfigForm } from "./LangdockConfigForm";
 import { BedrockConfigForm } from "./BedrockConfigForm";
 import { useApiKeys } from "@/hooks/useApiKeys";
+import { listBedrockModels } from "@/lib/api";
 
 interface FeatureModelConfigModalProps {
   feature: LLMFeature;
@@ -87,6 +88,35 @@ export function FeatureModelConfigModal({
 
   const currentProviderInfo = providers.find((p) => p.id === localProvider);
 
+  // Dynamic Bedrock model discovery
+  const [bedrockModels, setBedrockModels] = useState<string[]>([]);
+  const bCfg = getBedrockConfig();
+
+  useEffect(() => {
+    if (localProvider !== "bedrock" || !bCfg?.aws_region || !bCfg?.aws_access_key_id || !bCfg?.aws_secret_access_key) {
+      setBedrockModels([]);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const resp = await listBedrockModels({
+          aws_region: bCfg.aws_region,
+          aws_access_key_id: bCfg.aws_access_key_id,
+          aws_secret_access_key: bCfg.aws_secret_access_key,
+        });
+        if (!cancelled && resp.models.length > 0) {
+          setBedrockModels(resp.models.map((m: BedrockModelInfo) => m.model_id));
+        }
+      } catch { /* fallback to hardcoded */ }
+    }, 600);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [localProvider, bCfg?.aws_region, bCfg?.aws_access_key_id, bCfg?.aws_secret_access_key]);
+
+  const effectiveModels = localProvider === "bedrock" && bedrockModels.length > 0
+    ? bedrockModels
+    : (currentProviderInfo?.models ?? []);
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -106,7 +136,7 @@ export function FeatureModelConfigModal({
 
           {localProvider !== "azure_openai" ? (
             <ModelSelector
-              models={currentProviderInfo?.models ?? []}
+              models={effectiveModels}
               selectedModel={localModel}
               onModelChange={setLocalModel}
             />

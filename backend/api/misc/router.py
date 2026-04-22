@@ -7,7 +7,8 @@ from config import config
 from models.config import (
     ConfigResponse, ProviderInfo, PromptTemplate, LanguageOption,
     UpdatedTranscriptResponse, UpdatedTranscriptRequest,
-    GetSpeakersRequest, GetSpeakersResponse
+    GetSpeakersRequest, GetSpeakersResponse,
+    ListBedrockModelsRequest, ListBedrockModelsResponse, BedrockModelInfo,
 )
 from service.misc.core import MiscService
 from utils.helper import Helper
@@ -184,3 +185,62 @@ async def update_speakers(request: UpdatedTranscriptRequest):
             newline_pattern = re.compile(r'^' + re.escape(key) + r'$', re.MULTILINE)
             transcript = newline_pattern.sub(value, transcript)
     return UpdatedTranscriptResponse(transcript=transcript)
+
+
+@misc_router.post("/listBedrockModels", response_model=ListBedrockModelsResponse, status_code=200)
+async def list_bedrock_models(request: ListBedrockModelsRequest):
+    """List available Bedrock models using the provided AWS credentials."""
+    import asyncio
+    import boto3
+
+    def _list_models() -> ListBedrockModelsResponse:
+        try:
+            client = boto3.client(
+                "bedrock",
+                region_name=request.aws_region,
+                aws_access_key_id=request.aws_access_key_id,
+                aws_secret_access_key=request.aws_secret_access_key,
+            )
+
+            models: list[BedrockModelInfo] = []
+            seen_ids: set[str] = set()
+
+            # Collect inference profiles (cross-region models like eu.anthropic.*)
+            try:
+                profiles_resp = client.list_inference_profiles()
+                for p in profiles_resp.get("inferenceProfileSummaries", []):
+                    if p.get("status") != "ACTIVE":
+                        continue
+                    pid = p["inferenceProfileId"]
+                    if pid not in seen_ids:
+                        seen_ids.add(pid)
+                        models.append(BedrockModelInfo(
+                            model_id=pid,
+                            name=p.get("inferenceProfileName", pid),
+                            provider=pid.split(".")[-1].split("-")[0].title() if "." in pid else "",
+                        ))
+            except Exception as e:
+                logger.warning(f"Failed to list inference profiles: {e}")
+
+            # Collect foundation models
+            try:
+                fm_resp = client.list_foundation_models()
+                for fm in fm_resp.get("modelSummaries", []):
+                    mid = fm["modelId"]
+                    if mid not in seen_ids:
+                        seen_ids.add(mid)
+                        models.append(BedrockModelInfo(
+                            model_id=mid,
+                            name=fm.get("modelName", mid),
+                            provider=fm.get("providerName", ""),
+                        ))
+            except Exception as e:
+                logger.warning(f"Failed to list foundation models: {e}")
+
+            return ListBedrockModelsResponse(models=models)
+        except Exception as e:
+            logger.error(f"Bedrock model listing failed: {e}")
+            return ListBedrockModelsResponse(models=[], error=str(e))
+
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _list_models)
