@@ -66,12 +66,14 @@ export function usePromptAssistant({
 
   const buildCredentials = useCallback(
     () => ({
-      provider,
-      api_key: apiKey,
-      model,
-      azure_config: azureConfig,
-      langdock_config: langdockConfig,
-      bedrock_config: bedrockConfig ?? undefined,
+      credentials: {
+        provider,
+        api_key: apiKey,
+        model,
+        azure_config: azureConfig,
+        langdock_config: langdockConfig,
+        bedrock_config: bedrockConfig ?? undefined,
+      },
     }),
     [provider, apiKey, model, azureConfig, langdockConfig, bedrockConfig],
   );

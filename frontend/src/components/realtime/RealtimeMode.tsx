@@ -545,12 +545,14 @@ export function RealtimeMode({
       setIsExtractingRealtimeKeyPoints(true);
       try {
         const result = await extractKeyPoints({
-          provider: keyPointProvider,
-          api_key: llmKey,
-          model: keyPointModel,
-          azure_config: keyPointProvider === "azure_openai" ? azureConfig : null,
-          langdock_config: keyPointProvider === "langdock" ? langdockConfig : undefined,
-          bedrock_config: keyPointProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+          credentials: {
+            provider: keyPointProvider,
+            model: keyPointModel,
+            api_key: llmKey,
+            azure_config: keyPointProvider === "azure_openai" ? azureConfig : null,
+            langdock_config: keyPointProvider === "langdock" ? langdockConfig : undefined,
+            bedrock_config: keyPointProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+          },
           transcript: transcriptText,
           speakers: targetSpeakers,
           identify_speakers: speakerLabelsEnabled,

@@ -49,7 +49,7 @@ async def create_summary(
 
     except Exception as e:
         error_msg = str(e).lower()
-        provider_name = request.provider.value
+        provider_name = request.credentials.provider.value
 
         # Authentication errors
         if "auth" in error_msg or "api key" in error_msg or "unauthorized" in error_msg or "invalid x-api-key" in error_msg or "invalid api key" in error_msg:
@@ -62,7 +62,7 @@ async def create_summary(
         if "model" in error_msg and ("not found" in error_msg or "does not exist" in error_msg or "not exist" in error_msg):
             raise HTTPException(
                 status_code=400,
-                detail=f"Model '{request.model}' not found for provider {provider_name}"
+                detail=f"Model '{request.credentials.model}' not found for provider {provider_name}"
             )
 
         # All other errors
@@ -85,13 +85,13 @@ async def test_llm(request: TestLLMRequest = Body(...)):
         return TestLLMResponse(success=success, error=error)
     except Exception as e:
         error_msg = str(e).lower()
-        provider_name = request.provider.value
+        provider_name = request.credentials.provider.value
 
         if "auth" in error_msg or "api key" in error_msg or "unauthorized" in error_msg or "invalid x-api-key" in error_msg or "invalid api key" in error_msg:
             return TestLLMResponse(success=False, error=f"Invalid API key for {provider_name}")
 
         if "model" in error_msg and ("not found" in error_msg or "does not exist" in error_msg or "not exist" in error_msg):
-            return TestLLMResponse(success=False, error=f"Model '{request.model}' not found for {provider_name}")
+            return TestLLMResponse(success=False, error=f"Model '{request.credentials.model}' not found for {provider_name}")
 
         if "429" in error_msg or "rate limit" in error_msg:
             return TestLLMResponse(success=False, error="Rate limit exceeded. Try again later.")
@@ -115,7 +115,7 @@ async def extract_key_points(
 
     except Exception as e:
         error_msg = str(e).lower()
-        provider_name = request.provider.value
+        provider_name = request.credentials.provider.value
 
         if "auth" in error_msg or "api key" in error_msg or "unauthorized" in error_msg or "invalid x-api-key" in error_msg or "invalid api key" in error_msg:
             raise HTTPException(
@@ -126,7 +126,7 @@ async def extract_key_points(
         if "model" in error_msg and ("not found" in error_msg or "does not exist" in error_msg or "not exist" in error_msg):
             raise HTTPException(
                 status_code=400,
-                detail=f"Model '{request.model}' not found for provider {provider_name}"
+                detail=f"Model '{request.credentials.model}' not found for provider {provider_name}"
             )
 
         logger.error(f"LLM provider error ({provider_name}): {e}")
@@ -148,7 +148,7 @@ async def generate_title(request: GenerateTitleRequest = Body(...)):
         return GenerateTitleResponse(title=title, usage=usage)
     except Exception as e:
         error_msg = str(e).lower()
-        provider_name = request.provider.value
+        provider_name = request.credentials.provider.value
 
         if "auth" in error_msg or "api key" in error_msg or "unauthorized" in error_msg or "invalid x-api-key" in error_msg or "invalid api key" in error_msg:
             raise HTTPException(
@@ -159,7 +159,7 @@ async def generate_title(request: GenerateTitleRequest = Body(...)):
         if "model" in error_msg and ("not found" in error_msg or "does not exist" in error_msg or "not exist" in error_msg):
             raise HTTPException(
                 status_code=400,
-                detail=f"Model '{request.model}' not found for provider {provider_name}"
+                detail=f"Model '{request.credentials.model}' not found for provider {provider_name}"
             )
 
         logger.error(f"Title generation error ({provider_name}): {e}")

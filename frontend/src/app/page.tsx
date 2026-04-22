@@ -1235,12 +1235,14 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
         ? (azureConfig?.deployment_name || "azure")
         : selectedModel;
       const result = await testLlmConnection({
-        provider: selectedProvider,
-        api_key: apiKey,
-        model,
-        azure_config: selectedProvider === "azure_openai" ? azureConfig : null,
-        langdock_config: selectedProvider === "langdock" ? langdockConfig : undefined,
-        bedrock_config: selectedProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+        credentials: {
+          provider: selectedProvider,
+          model,
+          api_key: apiKey,
+          azure_config: selectedProvider === "azure_openai" ? azureConfig : null,
+          langdock_config: selectedProvider === "langdock" ? langdockConfig : undefined,
+          bedrock_config: selectedProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+        },
       });
       if (result.success) {
         toast.success("LLM connection test passed");
@@ -1390,12 +1392,14 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
       setIsExtractingKeyPoints(true);
       try {
         const result = await extractKeyPoints({
-          provider: kpProvider,
-          api_key: llmKey,
-          model: kpModel,
-          azure_config: kpProvider === "azure_openai" ? azureConfig : null,
-          langdock_config: kpProvider === "langdock" ? langdockConfig : undefined,
-          bedrock_config: kpProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+          credentials: {
+            provider: kpProvider,
+            model: kpModel,
+            api_key: llmKey,
+            azure_config: kpProvider === "azure_openai" ? azureConfig : null,
+            langdock_config: kpProvider === "langdock" ? langdockConfig : undefined,
+            bedrock_config: kpProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+          },
           transcript: transcriptForLLM,
           speakers,
           identify_speakers: speakerLabelsEnabled,
@@ -1690,12 +1694,14 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
     try {
       const result = await createSummary(
         {
-          provider: summaryProvider,
-          api_key: llmKey,
-          model: summaryModel,
-          azure_config: summaryProvider === "azure_openai" ? azureConfig : null,
-          langdock_config: summaryProvider === "langdock" ? langdockConfig : undefined,
-          bedrock_config: summaryProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+          credentials: {
+            provider: summaryProvider,
+            model: summaryModel,
+            api_key: llmKey,
+            azure_config: summaryProvider === "azure_openai" ? azureConfig : null,
+            langdock_config: summaryProvider === "langdock" ? langdockConfig : undefined,
+            bedrock_config: summaryProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+          },
           stream: true,
           system_prompt: selectedPrompt,
           text: transcriptForLLM,
@@ -1897,12 +1903,14 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
 
     try {
       const response = await fillForm({
-        provider: resolvedFormOutputConfig.provider,
-        api_key: llmKey,
-        model: resolvedFormOutputConfig.model,
-        azure_config: resolvedFormOutputConfig.provider === "azure_openai" ? azureConfig ?? undefined : undefined,
-        langdock_config: resolvedFormOutputConfig.provider === "langdock" ? langdockConfig : undefined,
-        bedrock_config: resolvedFormOutputConfig.provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+        credentials: {
+          provider: resolvedFormOutputConfig.provider,
+          model: resolvedFormOutputConfig.model,
+          api_key: llmKey,
+          azure_config: resolvedFormOutputConfig.provider === "azure_openai" ? azureConfig ?? undefined : undefined,
+          langdock_config: resolvedFormOutputConfig.provider === "langdock" ? langdockConfig : undefined,
+          bedrock_config: resolvedFormOutputConfig.provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+        },
         transcript: transcriptForLLM,
         fields: template.fields,
         meeting_date: meetingDate ?? undefined,
@@ -1956,12 +1964,14 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
 
     try {
       const response = await fillForm({
-        provider: resolvedFormOutputConfig.provider,
-        api_key: llmKey,
-        model: resolvedFormOutputConfig.model,
-        azure_config: resolvedFormOutputConfig.provider === "azure_openai" ? azureConfig ?? undefined : undefined,
-        langdock_config: resolvedFormOutputConfig.provider === "langdock" ? langdockConfig : undefined,
-        bedrock_config: resolvedFormOutputConfig.provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+        credentials: {
+          provider: resolvedFormOutputConfig.provider,
+          model: resolvedFormOutputConfig.model,
+          api_key: llmKey,
+          azure_config: resolvedFormOutputConfig.provider === "azure_openai" ? azureConfig ?? undefined : undefined,
+          langdock_config: resolvedFormOutputConfig.provider === "langdock" ? langdockConfig : undefined,
+          bedrock_config: resolvedFormOutputConfig.provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+        },
         transcript: transcriptForLLM,
         fields: template.fields,
         previous_values: formValues,

@@ -132,12 +132,14 @@ export function FormTemplateEditor({
     setIsGenerating(true);
     try {
       const response = await generateTemplate({
-        provider: llmProvider!,
-        api_key: llmApiKey!,
-        model: llmModel!,
-        azure_config: llmProvider === "azure_openai" ? llmAzureConfig ?? undefined : undefined,
-        langdock_config: llmProvider === "langdock" ? llmLangdockConfig : undefined,
-        bedrock_config: llmProvider === "bedrock" ? llmBedrockConfig ?? undefined : undefined,
+        credentials: {
+          provider: llmProvider!,
+          model: llmModel!,
+          api_key: llmApiKey!,
+          azure_config: llmProvider === "azure_openai" ? llmAzureConfig ?? undefined : undefined,
+          langdock_config: llmProvider === "langdock" ? llmLangdockConfig : undefined,
+          bedrock_config: llmProvider === "bedrock" ? llmBedrockConfig ?? undefined : undefined,
+        },
         description: aiDescription.trim(),
       });
 

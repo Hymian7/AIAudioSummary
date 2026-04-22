@@ -81,18 +81,8 @@ The output must be a ready-to-use system prompt string."""
 class PromptAssistantService:
     async def analyze(self, request: AnalyzeRequest) -> AnalyzeResponse:
         """Analyze an optional base prompt and return structured questions to refine it."""
-        model_name = request.model
-        if request.azure_config:
-            model_name = request.azure_config.deployment_name
-
-        model = _llm_service._create_model(
-            provider=request.provider,
-            model_name=model_name,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = _llm_service._create_model(request.credentials)
+        model_name = request.credentials.model_name
 
         if request.base_prompt and request.base_prompt.strip():
             user_prompt = (
@@ -110,7 +100,7 @@ class PromptAssistantService:
             model,
             system_prompt=_ANALYZE_SYSTEM_PROMPT,
             output_type=AnalyzeResponse,
-            model_settings=LLMService.build_model_settings(request.provider, model_name, temperature=0.3),
+            model_settings=LLMService.build_model_settings(request.credentials.provider, model_name, temperature=0.3),
         )
 
         result = await agent.run(user_prompt)
@@ -137,18 +127,8 @@ class PromptAssistantService:
 
     async def generate(self, request: GenerateRequest) -> GenerateResponse:
         """Generate a final system prompt based on user preferences and answers."""
-        model_name = request.model
-        if request.azure_config:
-            model_name = request.azure_config.deployment_name
-
-        model = _llm_service._create_model(
-            provider=request.provider,
-            model_name=model_name,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = _llm_service._create_model(request.credentials)
+        model_name = request.credentials.model_name
 
         answers_text = "\n".join(
             f"- {question_id}: {value if isinstance(value, str) else ', '.join(value)}"
@@ -173,7 +153,7 @@ class PromptAssistantService:
         agent = Agent(
             model,
             system_prompt=_GENERATE_SYSTEM_PROMPT,
-            model_settings=LLMService.build_model_settings(request.provider, model_name, temperature=0.4),
+            model_settings=LLMService.build_model_settings(request.credentials.provider, model_name, temperature=0.4),
         )
 
         result = await agent.run(user_prompt)

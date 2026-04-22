@@ -15,7 +15,7 @@ from pydantic_ai.providers.google import GoogleProvider
 from pydantic_ai.models.bedrock import BedrockConverseModel
 from pydantic_ai.providers.bedrock import BedrockProvider
 
-from models.llm import LLMProvider, AzureConfig, LangdockConfig, BedrockConfig, CreateSummaryRequest, ExtractKeyPointsRequest, ExtractKeyPointsResponse, TestLLMRequest, GenerateTitleRequest, TokenUsage
+from models.llm import LLMProvider, AzureConfig, LangdockConfig, BedrockConfig, ProviderCredentials, CreateSummaryRequest, ExtractKeyPointsRequest, ExtractKeyPointsResponse, TestLLMRequest, GenerateTitleRequest, TokenUsage
 from service.misc.core import MiscService
 
 
@@ -81,11 +81,15 @@ class LLMService:
             kwargs["max_tokens"] = _LANGDOCK_GPT_MAX_TOKENS
         return ModelSettings(**kwargs)
 
-    def _create_model(self, provider: LLMProvider, model_name: str, api_key: str,
-                      azure_config: AzureConfig | None = None,
-                      langdock_config: LangdockConfig | None = None,
-                      bedrock_config: BedrockConfig | None = None):
+    def _create_model(self, credentials: ProviderCredentials):
         """Create the appropriate pydantic-ai model based on the provider."""
+        provider = credentials.provider
+        model_name = credentials.model_name
+        api_key = credentials.api_key
+        azure_config = credentials.azure_config
+        langdock_config = credentials.langdock_config
+        bedrock_config = credentials.bedrock_config
+
         if provider == LLMProvider.OPENAI:
             return OpenAIChatModel(
                 model_name,
@@ -211,19 +215,8 @@ class LLMService:
             Streaming: async generator of string chunks (title marker + body + usage marker).
             Non-streaming: tuple of (summary_title, output_text, usage).
         """
-        # Use deployment_name as model name for Azure OpenAI
-        model_name = request.model
-        if request.provider == LLMProvider.AZURE_OPENAI and request.azure_config:
-            model_name = request.azure_config.deployment_name
-
-        model = self._create_model(
-            provider=request.provider,
-            model_name=model_name,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = self._create_model(request.credentials)
+        model_name = request.credentials.model_name
 
         system_prompt, user_prompt = await self.build_prompt(
             system_prompt=request.system_prompt,
@@ -237,7 +230,7 @@ class LLMService:
         agent = Agent(
             model,
             system_prompt=system_prompt,
-            model_settings=self.build_model_settings(request.provider, model_name, temperature=0.5)
+            model_settings=self.build_model_settings(request.credentials.provider, model_name, temperature=0.5)
         )
 
         # Generate dedicated title via structured output
@@ -245,7 +238,7 @@ class LLMService:
         title_usage = None
         try:
             title, title_usage = await self._generate_title(
-                model, request.provider, model_name,
+                model, request.credentials.provider, model_name,
                 request.text, request.target_language, request.date,
             )
         except Exception as e:
@@ -260,18 +253,8 @@ class LLMService:
 
     async def extract_key_points(self, request: ExtractKeyPointsRequest) -> ExtractKeyPointsResponse:
         """Extract 1-3 sentence key point summaries per speaker from a transcript."""
-        model_name = request.model
-        if request.provider == LLMProvider.AZURE_OPENAI and request.azure_config:
-            model_name = request.azure_config.deployment_name
-
-        model = self._create_model(
-            provider=request.provider,
-            model_name=model_name,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = self._create_model(request.credentials)
+        model_name = request.credentials.model_name
 
         speakers_list = ", ".join(request.speakers)
         system_prompt = (
@@ -302,7 +285,7 @@ class LLMService:
             model,
             system_prompt=system_prompt,
             output_type=output_type,
-            model_settings=self.build_model_settings(request.provider, model_name, temperature=0.3)
+            model_settings=self.build_model_settings(request.credentials.provider, model_name, temperature=0.3)
         )
 
         result = await agent.run(user_prompt)
@@ -348,18 +331,11 @@ class LLMService:
 
     async def generate_title_standalone(self, request: GenerateTitleRequest) -> tuple[str, TokenUsage | None]:
         """Generate a title from a transcript without generating a summary."""
-        # Use deployment_name as model name for Azure OpenAI
-        model_name = request.model
-        if request.provider == LLMProvider.AZURE_OPENAI and request.azure_config:
-            model_name = request.azure_config.deployment_name
+        model = self._create_model(request.credentials)
+        model_name = request.credentials.model_name
 
-        model = self._create_model(
-            request.provider, model_name, request.api_key,
-            request.azure_config, request.langdock_config,
-            request.bedrock_config,
-        )
         title, usage = await self._generate_title(
-            model, request.provider, model_name,
+            model, request.credentials.provider, model_name,
             request.transcript, request.target_language, request.date,
             request.system_prompt,
         )
@@ -435,23 +411,13 @@ class LLMService:
         Returns:
             Tuple of (success, error_message).
         """
-        model_name = request.model
-        if request.provider == LLMProvider.AZURE_OPENAI and request.azure_config:
-            model_name = request.azure_config.deployment_name
-
-        model = self._create_model(
-            provider=request.provider,
-            model_name=model_name,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = self._create_model(request.credentials)
+        model_name = request.credentials.model_name
 
         agent = Agent(
             model,
             system_prompt="Reply with exactly: pong",
-            model_settings=self.build_model_settings(request.provider, model_name, temperature=0, max_tokens=16),
+            model_settings=self.build_model_settings(request.credentials.provider, model_name, temperature=0, max_tokens=16),
         )
 
         result = await agent.run("ping")

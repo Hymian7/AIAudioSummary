@@ -1,15 +1,10 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
-from models.llm import AzureConfig, LangdockConfig, BedrockConfig, LLMProvider, TokenUsage
+from models.llm import ProviderCredentials, TokenUsage
 
 
 class IncrementalSummaryRequest(BaseModel):
-    provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
-    model: str = Field(..., min_length=1, description="Model identifier")
-    azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
-    langdock_config: LangdockConfig = Field(default_factory=LangdockConfig, description="Langdock region config")
-    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
+    credentials: ProviderCredentials = Field(..., description="LLM provider credentials")
     system_prompt: str = Field(..., min_length=1, description="The system prompt (selected/edited template)")
     full_transcript: str = Field(..., min_length=1, description="The full accumulated transcript so far")
     previous_summary: str | None = Field(None, description="The previous summary to update incrementally")
@@ -19,14 +14,6 @@ class IncrementalSummaryRequest(BaseModel):
     informal_german: bool = Field(False, description="Use informal German pronouns (du/ihr instead of Sie)")
     date: str | None = Field(None, description="Meeting date for prompt context")
     author: str | None = Field(None, description="Speaker selected as author/POV for the summary")
-
-    @model_validator(mode="after")
-    def validate_provider_config(self):
-        if self.provider == LLMProvider.AZURE_OPENAI and self.azure_config is None:
-            raise ValueError("azure_config is required when provider is 'azure_openai'")
-        if self.provider == LLMProvider.BEDROCK and self.bedrock_config is None:
-            raise ValueError("bedrock_config is required when provider is 'bedrock'")
-        return self
 
 
 class IncrementalSummaryResponse(BaseModel):

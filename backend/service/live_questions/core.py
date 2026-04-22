@@ -33,19 +33,12 @@ You must return an evaluation for EVERY question provided. The evaluations list 
 
 class LiveQuestionsService:
     async def evaluate(self, request: EvaluateQuestionsRequest) -> EvaluateQuestionsResponse:
-        model = _llm_service._create_model(
-            provider=request.provider,
-            model_name=request.model,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = _llm_service._create_model(request.credentials)
 
         agent: Agent[None, EvaluateQuestionsResponse] = Agent(
             model=model,
             output_type=EvaluateQuestionsResponse,
-            model_settings=LLMService.build_model_settings(request.provider, request.model, temperature=0.1),
+            model_settings=LLMService.build_model_settings(request.credentials.provider, request.credentials.model_name, temperature=0.1),
             system_prompt=_EVALUATE_SYSTEM_PROMPT,
         )
 
@@ -62,7 +55,7 @@ QUESTIONS TO EVALUATE:
 TRANSCRIPT:
 {request.transcript}"""
 
-        logger.info(f"Evaluating {len(request.questions)} live question(s) with {request.provider}/{request.model}")
+        logger.info(f"Evaluating {len(request.questions)} live question(s) with {request.credentials.provider}/{request.credentials.model}")
 
         result = await agent.run(user_prompt)
         response = result.output

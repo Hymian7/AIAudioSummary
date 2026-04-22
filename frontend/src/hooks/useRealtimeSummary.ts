@@ -95,12 +95,14 @@ export function useRealtimeSummary(options: UseRealtimeSummaryOptions) {
     const newChunk = effectiveTranscript.slice(lastSummaryTranscriptLenRef.current);
 
     const request: IncrementalSummaryRequest = {
-      provider: config.provider,
-      api_key: config.apiKey,
-      model: config.model,
-      azure_config: config.azureConfig,
-      langdock_config: config.langdockConfig,
-      bedrock_config: config.bedrockConfig,
+      credentials: {
+        provider: config.provider,
+        model: config.model,
+        api_key: config.apiKey,
+        azure_config: config.azureConfig,
+        langdock_config: config.langdockConfig,
+        bedrock_config: config.bedrockConfig,
+      },
       system_prompt: config.systemPrompt,
       full_transcript: effectiveTranscript,
       previous_summary: realtimeSummaryRef.current || undefined,

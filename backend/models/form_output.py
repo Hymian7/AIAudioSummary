@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
-from models.llm import AzureConfig, LangdockConfig, BedrockConfig, LLMProvider
+from models.llm import ProviderCredentials
 
 
 class FormFieldType(str, Enum):
@@ -24,12 +24,7 @@ class FormFieldDefinition(BaseModel):
 
 
 class FillFormRequest(BaseModel):
-    provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
-    model: str = Field(..., min_length=1, description="Model identifier")
-    azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
-    langdock_config: LangdockConfig | None = Field(None, description="Langdock region config")
-    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
+    credentials: ProviderCredentials = Field(..., description="LLM provider credentials")
     transcript: str = Field(..., min_length=1, description="Transcript text to extract values from")
     fields: list[FormFieldDefinition] = Field(..., min_length=1, description="Form field definitions")
     previous_values: dict[str, object] | None = Field(None, description="Previously filled values for incremental updates")
@@ -41,12 +36,7 @@ class FillFormResponse(BaseModel):
 
 
 class GenerateTemplateRequest(BaseModel):
-    provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
-    model: str = Field(..., min_length=1, description="Model identifier")
-    azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
-    langdock_config: LangdockConfig | None = Field(None, description="Langdock region config")
-    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
+    credentials: ProviderCredentials = Field(..., description="LLM provider credentials")
     description: str = Field(..., min_length=1, description="Natural language description of the desired form template")
 
 

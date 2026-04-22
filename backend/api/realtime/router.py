@@ -74,20 +74,8 @@ async def create_incremental_summary(
 ):
     """Generate or update a summary incrementally from a realtime transcript."""
     try:
-        from models.llm import LLMProvider
-
-        model_name = request.model
-        if request.provider == LLMProvider.AZURE_OPENAI and request.azure_config:
-            model_name = request.azure_config.deployment_name
-
-        model = llm_service._create_model(
-            provider=request.provider,
-            model_name=model_name,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = llm_service._create_model(request.credentials)
+        model_name = request.credentials.model_name
 
         # Detect language from the transcript; substitute {language} in the prompt
         language = await _detect_language(request.full_transcript)
@@ -130,7 +118,7 @@ async def create_incremental_summary(
         summary_title = None
         try:
             summary_title, _ = await llm_service._generate_title(
-                model, request.provider, model_name,
+                model, request.credentials.provider, model_name,
                 request.full_transcript, language, None,
             )
         except Exception as e:
@@ -145,7 +133,7 @@ async def create_incremental_summary(
 
     except Exception as e:
         error_msg = str(e).lower()
-        provider_name = request.provider.value
+        provider_name = request.credentials.provider.value
 
         if "auth" in error_msg or "api key" in error_msg or "unauthorized" in error_msg or "invalid x-api-key" in error_msg or "invalid api key" in error_msg:
             raise HTTPException(
@@ -156,7 +144,7 @@ async def create_incremental_summary(
         if "model" in error_msg and ("not found" in error_msg or "does not exist" in error_msg or "not exist" in error_msg):
             raise HTTPException(
                 status_code=400,
-                detail=f"Model '{request.model}' not found for provider {provider_name}",
+                detail=f"Model '{request.credentials.model}' not found for provider {provider_name}",
             )
 
         logger.error(f"LLM provider error ({provider_name}): {e}")

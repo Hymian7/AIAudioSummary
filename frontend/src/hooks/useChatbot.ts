@@ -226,12 +226,14 @@ export function useChatbot({
 
     const request: ChatRequest = {
       messages: apiMessages,
-      provider,
-      model,
-      api_key: apiKey,
-      azure_config: provider === "azure_openai" ? azureConfig : null,
-      langdock_config: provider === "langdock" ? langdockConfig : undefined,
-      bedrock_config: provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+      credentials: {
+        provider,
+        model,
+        api_key: apiKey,
+        azure_config: provider === "azure_openai" ? azureConfig : null,
+        langdock_config: provider === "langdock" ? langdockConfig : undefined,
+        bedrock_config: provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
+      },
       qa_enabled: chatbotQAEnabled,
       transcript_enabled: chatbotTranscriptEnabled,
       actions_enabled: chatbotActionsEnabled,

@@ -3,7 +3,7 @@ from typing import Union
 
 from pydantic import BaseModel, Field
 
-from models.llm import LLMProvider, AzureConfig, LangdockConfig, BedrockConfig
+from models.llm import ProviderCredentials
 
 
 class QuestionType(str, Enum):
@@ -24,12 +24,7 @@ class AssistantQuestion(BaseModel):
 
 
 class AnalyzeRequest(BaseModel):
-    provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
-    model: str = Field(..., min_length=1, description="Model identifier")
-    azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
-    langdock_config: LangdockConfig | None = Field(None, description="Langdock region config")
-    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
+    credentials: ProviderCredentials = Field(..., description="LLM provider credentials")
     base_prompt: str | None = Field(None, description="Optional existing prompt to analyze and refine")
 
 
@@ -47,12 +42,7 @@ class AnalyzeResponse(BaseModel):
 
 
 class GenerateRequest(BaseModel):
-    provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
-    model: str = Field(..., min_length=1, description="Model identifier")
-    azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
-    langdock_config: LangdockConfig | None = Field(None, description="Langdock region config")
-    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
+    credentials: ProviderCredentials = Field(..., description="LLM provider credentials")
     base_prompt: str | None = Field(None, description="Optional base prompt to build upon")
     answers: dict[str, Union[str, list[str]]] = Field(..., description="User answers keyed by question id")
     additional_notes: str | None = Field(None, description="Any additional instructions from the user")

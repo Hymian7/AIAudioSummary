@@ -264,12 +264,14 @@ export function SettingsSheet({
 
     try {
       const result = await testLlmConnection({
-        provider: selectedProvider,
-        api_key: apiKey,
-        model,
-        azure_config: selectedProvider === "azure_openai" ? azureConfig : null,
-        langdock_config: selectedProvider === "langdock" ? langdockConfig : undefined,
-        bedrock_config: selectedProvider === "bedrock" ? bedrockConfig : undefined,
+        credentials: {
+          provider: selectedProvider,
+          model,
+          api_key: apiKey,
+          azure_config: selectedProvider === "azure_openai" ? azureConfig : null,
+          langdock_config: selectedProvider === "langdock" ? langdockConfig : undefined,
+          bedrock_config: selectedProvider === "bedrock" ? bedrockConfig : undefined,
+        },
       });
 
       if (result.success) {

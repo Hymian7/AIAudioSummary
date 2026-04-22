@@ -7,7 +7,6 @@ from pydantic_ai.messages import ModelMessage, ModelRequest, ModelResponse, User
 
 
 from models.chatbot import ChatRequest, ChatMessage
-from models.llm import LLMProvider
 from service.llm.core import LLMService
 from service.chatbot.actions import ACTION_REGISTRY
 from utils.logging import logger
@@ -217,18 +216,8 @@ class ChatbotService:
         """Main chat method. Returns a string or async generator depending on stream flag."""
         llm_service = LLMService()
 
-        model_name = request.model
-        if request.provider == LLMProvider.AZURE_OPENAI and request.azure_config:
-            model_name = request.azure_config.deployment_name
-
-        model = llm_service._create_model(
-            provider=request.provider,
-            model_name=model_name,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = llm_service._create_model(request.credentials)
+        model_name = request.credentials.model_name
 
         system_prompt = self._build_system_prompt(request)
         trimmed_messages = request.messages[-20:]
@@ -250,7 +239,7 @@ class ChatbotService:
             model,
             instructions=system_prompt,
             model_settings=LLMService.build_model_settings(
-                request.provider, model_name, temperature=0.7)
+                request.credentials.provider, model_name, temperature=0.7)
         )
 
         if request.stream:

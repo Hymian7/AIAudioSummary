@@ -67,12 +67,7 @@ export interface CreateTranscriptResponse {
 // === LLM Test types ===
 
 export interface TestLLMRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config: AzureConfig | null;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
 }
 
 export interface TestLLMResponse {
@@ -98,13 +93,17 @@ export interface BedrockConfig {
   aws_secret_access_key: string;
 }
 
-export interface CreateSummaryRequest {
+export interface ProviderCredentials {
   provider: LLMProvider;
-  api_key: string;
   model: string;
-  azure_config: AzureConfig | null;
+  api_key: string;
+  azure_config?: AzureConfig | null;
   langdock_config?: LangdockConfig;
   bedrock_config?: BedrockConfig;
+}
+
+export interface CreateSummaryRequest {
+  credentials: ProviderCredentials;
   stream: boolean;
   system_prompt: string;
   text: string;
@@ -123,12 +122,7 @@ export interface CreateSummaryResponse {
 // === Key Points types ===
 
 export interface ExtractKeyPointsRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config: AzureConfig | null;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   transcript: string;
   speakers: string[];
   identify_speakers?: boolean;
@@ -170,12 +164,7 @@ export interface AssistantQuestion {
 }
 
 export interface PromptAssistantAnalyzeRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config: AzureConfig | null;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   base_prompt?: string;
 }
 
@@ -184,12 +173,7 @@ export interface PromptAssistantAnalyzeResponse {
 }
 
 export interface PromptAssistantGenerateRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config: AzureConfig | null;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   base_prompt?: string;
   answers: Record<string, string | string[]>;
   additional_notes?: string;
@@ -242,12 +226,7 @@ export type RealtimeWsMessage =
   | { type: "session_ended" };
 
 export interface IncrementalSummaryRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config?: AzureConfig;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   system_prompt: string;
   full_transcript: string;
   previous_summary?: string;
@@ -278,12 +257,7 @@ export interface LiveQuestion {
 }
 
 export interface EvaluateQuestionsRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config?: AzureConfig;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   transcript: string;
   questions: { id: string; question: string }[];
 }
@@ -340,12 +314,7 @@ export interface AppContext {
 
 export interface ChatRequest {
   messages: { role: ChatRole; content: string }[];
-  provider: string;
-  model: string;
-  api_key: string;
-  azure_config: AzureConfig | null;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   qa_enabled: boolean;
   transcript_enabled: boolean;
   actions_enabled: boolean;
@@ -385,12 +354,7 @@ export interface ContentPayload {
 // === Title Generation types ===
 
 export interface GenerateTitleRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config: AzureConfig | null;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   transcript: string;
   target_language: string;
   date: string | null;
@@ -541,12 +505,7 @@ export interface FormTemplate {
 }
 
 export interface FillFormRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config?: AzureConfig;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   transcript: string;
   fields: FormFieldDefinition[];
   previous_values?: Record<string, unknown>;
@@ -558,12 +517,7 @@ export interface FillFormResponse {
 }
 
 export interface GenerateTemplateRequest {
-  provider: LLMProvider;
-  api_key: string;
-  model: string;
-  azure_config?: AzureConfig;
-  langdock_config?: LangdockConfig;
-  bedrock_config?: BedrockConfig;
+  credentials: ProviderCredentials;
   description: string;
 }
 

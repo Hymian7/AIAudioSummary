@@ -61,12 +61,14 @@ export function useFormOutput(options?: UseFormOutputOptions) {
         const hasPrevious = Object.values(currentValues).some((v) => v != null);
 
         const response = await fillForm({
-          provider: llmConfig.provider,
-          api_key: llmConfig.apiKey,
-          model: llmConfig.model,
-          azure_config: llmConfig.azureConfig,
-          langdock_config: llmConfig.langdockConfig,
-          bedrock_config: llmConfig.bedrockConfig,
+          credentials: {
+            provider: llmConfig.provider,
+            model: llmConfig.model,
+            api_key: llmConfig.apiKey,
+            azure_config: llmConfig.azureConfig,
+            langdock_config: llmConfig.langdockConfig,
+            bedrock_config: llmConfig.bedrockConfig,
+          },
           transcript,
           fields,
           previous_values: hasPrevious ? currentValues : undefined,

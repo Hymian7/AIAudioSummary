@@ -25,7 +25,7 @@ async def analyze_prompt(request: AnalyzeRequest = Body(...)):
         return result
     except Exception as e:
         error_msg = str(e).lower()
-        provider_name = request.provider.value
+        provider_name = request.credentials.provider.value
 
         if (
             "auth" in error_msg
@@ -46,7 +46,7 @@ async def analyze_prompt(request: AnalyzeRequest = Body(...)):
         ):
             raise HTTPException(
                 status_code=400,
-                detail=f"Model '{request.model}' not found for provider {provider_name}",
+                detail=f"Model '{request.credentials.model}' not found for provider {provider_name}",
             )
 
         logger.error(f"Prompt assistant analyze error ({provider_name}): {e}")
@@ -68,7 +68,7 @@ async def generate_prompt(request: GenerateRequest = Body(...)):
         return result
     except Exception as e:
         error_msg = str(e).lower()
-        provider_name = request.provider.value
+        provider_name = request.credentials.provider.value
 
         if (
             "auth" in error_msg
@@ -89,7 +89,7 @@ async def generate_prompt(request: GenerateRequest = Body(...)):
         ):
             raise HTTPException(
                 status_code=400,
-                detail=f"Model '{request.model}' not found for provider {provider_name}",
+                detail=f"Model '{request.credentials.model}' not found for provider {provider_name}",
             )
 
         logger.error(f"Prompt assistant generate error ({provider_name}): {e}")

@@ -102,14 +102,7 @@ class _GenerateTemplateOutput(BaseModel):
 
 class FormOutputService:
     async def fill_form(self, request: FillFormRequest) -> FillFormResponse:
-        model = _llm_service._create_model(
-            provider=request.provider,
-            model_name=request.model,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = _llm_service._create_model(request.credentials)
 
         DynamicModel = _build_dynamic_model(request.fields)
 
@@ -120,7 +113,7 @@ class FormOutputService:
         agent: Agent[None, object] = Agent(
             model=model,
             output_type=DynamicModel,
-            model_settings=LLMService.build_model_settings(request.provider, request.model, temperature=0.1),
+            model_settings=LLMService.build_model_settings(request.credentials.provider, request.credentials.model_name, temperature=0.1),
             system_prompt=system_prompt,
         )
 
@@ -147,7 +140,7 @@ FORM FIELDS:
 
         user_prompt += f"\n\nTRANSCRIPT:\n{request.transcript}"
 
-        logger.info(f"Filling form with {len(request.fields)} field(s) using {request.provider}/{request.model}")
+        logger.info(f"Filling form with {len(request.fields)} field(s) using {request.credentials.provider}/{request.credentials.model}")
 
         result = await agent.run(user_prompt)
         values = result.output.model_dump()
@@ -155,25 +148,18 @@ FORM FIELDS:
         return FillFormResponse(values=values)
 
     async def generate_template(self, request: GenerateTemplateRequest) -> GenerateTemplateResponse:
-        model = _llm_service._create_model(
-            provider=request.provider,
-            model_name=request.model,
-            api_key=request.api_key,
-            azure_config=request.azure_config,
-            langdock_config=request.langdock_config,
-            bedrock_config=request.bedrock_config,
-        )
+        model = _llm_service._create_model(request.credentials)
 
         agent: Agent[None, _GenerateTemplateOutput] = Agent(
             model=model,
             output_type=_GenerateTemplateOutput,
-            model_settings=LLMService.build_model_settings(request.provider, request.model, temperature=0.3),
+            model_settings=LLMService.build_model_settings(request.credentials.provider, request.credentials.model_name, temperature=0.3),
             system_prompt=_GENERATE_TEMPLATE_SYSTEM_PROMPT,
         )
 
         user_prompt = f"Design a form template for the following use case:\n\n{request.description}"
 
-        logger.info(f"Generating form template using {request.provider}/{request.model}")
+        logger.info(f"Generating form template using {request.credentials.provider}/{request.credentials.model}")
 
         result = await agent.run(user_prompt)
         output = result.output

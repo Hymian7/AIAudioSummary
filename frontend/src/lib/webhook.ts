@@ -184,12 +184,14 @@ export function fireTranscriptWebhookWithTitle(
   const toastId = toast.info("Webhook queued — generating title…", { duration: Infinity });
 
   generateTitle({
-    provider: titleConfig.provider,
-    api_key: titleConfig.apiKey,
-    model: titleConfig.model,
-    azure_config: titleConfig.azureConfig,
-    langdock_config: titleConfig.langdockConfig,
-    bedrock_config: titleConfig.bedrockConfig ?? undefined,
+    credentials: {
+      provider: titleConfig.provider,
+      model: titleConfig.model,
+      api_key: titleConfig.apiKey,
+      azure_config: titleConfig.azureConfig,
+      langdock_config: titleConfig.langdockConfig,
+      bedrock_config: titleConfig.bedrockConfig ?? undefined,
+    },
     transcript: payloadParams.transcript,
     target_language: titleConfig.language,
     date: titleConfig.date,
