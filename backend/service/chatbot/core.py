@@ -226,7 +226,8 @@ class ChatbotService:
             model_name=model_name,
             api_key=request.api_key,
             azure_config=request.azure_config,
-            langdock_config=request.langdock_config
+            langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         system_prompt = self._build_system_prompt(request)

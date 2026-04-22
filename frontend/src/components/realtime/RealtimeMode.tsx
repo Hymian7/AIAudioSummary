@@ -26,6 +26,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { buildWebhookPayload, fireWebhookWithToast } from "@/lib/webhook";
 import type {
   AzureConfig,
+  BedrockConfig,
   LangdockConfig,
   ConfigResponse,
   FormTemplate,
@@ -45,6 +46,7 @@ interface RealtimeModeProps {
   selectedModel: string;
   azureConfig: AzureConfig | null;
   langdockConfig: LangdockConfig;
+  bedrockConfig: BedrockConfig | null;
   selectedLanguage: string;
   informalGerman: boolean;
   meetingDate: string;
@@ -66,6 +68,7 @@ interface RealtimeModeProps {
   formOutputApiKey?: string;
   formOutputAzureConfig?: AzureConfig | null;
   formOutputLangdockConfig?: LangdockConfig;
+  formOutputBedrockConfig?: BedrockConfig | null;
   formTemplates: FormTemplate[];
   onSaveFormTemplate: (template: FormTemplate) => void;
   onUpdateFormTemplate: (template: FormTemplate) => void;
@@ -98,6 +101,7 @@ export function RealtimeMode({
   selectedModel,
   azureConfig,
   langdockConfig,
+  bedrockConfig,
   selectedLanguage,
   informalGerman,
   meetingDate,
@@ -119,6 +123,7 @@ export function RealtimeMode({
   formOutputApiKey,
   formOutputAzureConfig,
   formOutputLangdockConfig,
+  formOutputBedrockConfig,
   formTemplates,
   onSaveFormTemplate,
   onUpdateFormTemplate,
@@ -323,6 +328,7 @@ export function RealtimeMode({
       model: selectedModel,
       azureConfig: azureConfig || undefined,
       langdockConfig: selectedProvider === "langdock" ? langdockConfig : undefined,
+      bedrockConfig: selectedProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
       systemPrompt: realtimeSystemPrompt,
       targetLanguage: selectedLanguage,
       informalGerman,
@@ -334,6 +340,7 @@ export function RealtimeMode({
     selectedModel,
     azureConfig,
     langdockConfig,
+    bedrockConfig,
     realtimeSystemPrompt,
     selectedLanguage,
     informalGerman,
@@ -365,6 +372,7 @@ export function RealtimeMode({
             model: liveQuestionsModel,
             azureConfig: liveQuestionsProvider === "azure_openai" ? azureConfig ?? undefined : undefined,
             langdockConfig: liveQuestionsProvider === "langdock" ? langdockConfig : undefined,
+            bedrockConfig: liveQuestionsProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
           });
         }
       }
@@ -380,6 +388,7 @@ export function RealtimeMode({
             model: formOutputModel,
             azureConfig: formOutputProvider === "azure_openai" ? azureConfig ?? undefined : undefined,
             langdockConfig: formOutputProvider === "langdock" ? langdockConfig : undefined,
+            bedrockConfig: formOutputProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
           });
         }
       }
@@ -399,6 +408,7 @@ export function RealtimeMode({
     selectedFormTemplateId,
     azureConfig,
     langdockConfig,
+    bedrockConfig,
     getKey,
   ]);
 
@@ -490,8 +500,9 @@ export function RealtimeMode({
       model: liveQuestionsModel,
       azureConfig: liveQuestionsProvider === "azure_openai" ? azureConfig ?? undefined : undefined,
       langdockConfig: liveQuestionsProvider === "langdock" ? langdockConfig : undefined,
+      bedrockConfig: liveQuestionsProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
     }, true, realtimeReevaluateAll);
-  }, [session.accumulatedTranscript, liveQuestions, liveQuestionsProvider, liveQuestionsModel, azureConfig, langdockConfig, getKey, realtimeReevaluateAll]);
+  }, [session.accumulatedTranscript, liveQuestions, liveQuestionsProvider, liveQuestionsModel, azureConfig, langdockConfig, bedrockConfig, getKey, realtimeReevaluateAll]);
 
   const handleRefreshForm = useCallback(() => {
     const transcript = session.accumulatedTranscript;
@@ -506,8 +517,9 @@ export function RealtimeMode({
       model: formOutputModel,
       azureConfig: formOutputProvider === "azure_openai" ? azureConfig ?? undefined : undefined,
       langdockConfig: formOutputProvider === "langdock" ? langdockConfig : undefined,
+      bedrockConfig: formOutputProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
     }, true);
-  }, [session.accumulatedTranscript, formTemplates, selectedFormTemplateId, formOutput, formOutputProvider, formOutputModel, azureConfig, langdockConfig, getKey]);
+  }, [session.accumulatedTranscript, formTemplates, selectedFormTemplateId, formOutput, formOutputProvider, formOutputModel, azureConfig, langdockConfig, bedrockConfig, getKey]);
 
   // Speaker mapping handlers
   const handleExtractRealtimeKeyPoints = useCallback(
@@ -538,6 +550,7 @@ export function RealtimeMode({
           model: keyPointModel,
           azure_config: keyPointProvider === "azure_openai" ? azureConfig : null,
           langdock_config: keyPointProvider === "langdock" ? langdockConfig : undefined,
+          bedrock_config: keyPointProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
           transcript: transcriptText,
           speakers: targetSpeakers,
           identify_speakers: speakerLabelsEnabled,
@@ -552,7 +565,7 @@ export function RealtimeMode({
         setIsExtractingRealtimeKeyPoints(false);
       }
     },
-    [keyPointProvider, keyPointModel, getKey, session.realtimeUtterances, speakerMappings, azureConfig, langdockConfig, speakerLabelsEnabled],
+    [keyPointProvider, keyPointModel, getKey, session.realtimeUtterances, speakerMappings, azureConfig, langdockConfig, bedrockConfig, speakerLabelsEnabled],
   );
 
   const handleApplyRealtimeMappings = useCallback(
@@ -627,6 +640,7 @@ export function RealtimeMode({
       llmModel={formOutputModel}
       llmAzureConfig={formOutputAzureConfig}
       llmLangdockConfig={formOutputLangdockConfig}
+      llmBedrockConfig={formOutputBedrockConfig}
       onRefresh={handleRefreshForm}
       hasTranscript={!!session.accumulatedTranscript}
     />

@@ -100,6 +100,7 @@ export function useRealtimeSummary(options: UseRealtimeSummaryOptions) {
       model: config.model,
       azure_config: config.azureConfig,
       langdock_config: config.langdockConfig,
+      bedrock_config: config.bedrockConfig,
       system_prompt: config.systemPrompt,
       full_transcript: effectiveTranscript,
       previous_summary: realtimeSummaryRef.current || undefined,

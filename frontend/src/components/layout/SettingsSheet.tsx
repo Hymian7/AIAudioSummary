@@ -26,6 +26,7 @@ import { ProviderSelector } from "@/components/settings/ProviderSelector";
 import { ModelSelector } from "@/components/settings/ModelSelector";
 import { AzureConfigForm } from "@/components/settings/AzureConfigForm";
 import { LangdockConfigForm } from "@/components/settings/LangdockConfigForm";
+import { BedrockConfigForm } from "@/components/settings/BedrockConfigForm";
 import { FeatureModelOverrides } from "@/components/settings/FeatureModelOverrides";
 import { ChatbotSettings } from "@/components/settings/ChatbotSettings";
 import { KeytermsListSelector } from "@/components/settings/KeytermsListSelector";
@@ -33,7 +34,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { testLlmConnection, fireWebhook } from "@/lib/api";
 import { buildTestWebhookPayload } from "@/lib/webhook";
-import type { AzureConfig, LangdockConfig, ConfigResponse, LLMProvider, RealtimeSpeechModel, SummaryInterval, LLMFeature, FeatureModelOverride, CopyFormat, SaveFormat, ChatbotCopyFormat, KeytermsList, WebhookStandardTrigger, WebhookRealtimeTrigger } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, ConfigResponse, LLMProvider, RealtimeSpeechModel, SummaryInterval, LLMFeature, FeatureModelOverride, CopyFormat, SaveFormat, ChatbotCopyFormat, KeytermsList, WebhookStandardTrigger, WebhookRealtimeTrigger } from "@/lib/types";
 import { COPY_FORMAT_LABELS, SAVE_FORMAT_LABELS, CHATBOT_COPY_FORMAT_LABELS } from "@/lib/content-formats";
 
 interface SettingsSheetProps {
@@ -48,6 +49,8 @@ interface SettingsSheetProps {
   onAzureConfigChange: (config: AzureConfig) => void;
   langdockConfig: LangdockConfig;
   onLangdockConfigChange: (config: LangdockConfig) => void;
+  bedrockConfig: BedrockConfig | null;
+  onBedrockConfigChange: (config: BedrockConfig) => void;
   autoKeyPointsEnabled: boolean;
   onAutoKeyPointsChange: (enabled: boolean) => void;
   speakerLabelsEnabled: boolean;
@@ -152,6 +155,8 @@ export function SettingsSheet({
   onAzureConfigChange,
   langdockConfig,
   onLangdockConfigChange,
+  bedrockConfig,
+  onBedrockConfigChange,
   autoKeyPointsEnabled,
   onAutoKeyPointsChange,
   speakerLabelsEnabled,
@@ -236,10 +241,17 @@ export function SettingsSheet({
 
   const handleTestLlm = useCallback(async () => {
     const apiKey = getKey(selectedProvider);
-    if (!apiKey) {
+    if (selectedProvider !== "bedrock" && !apiKey) {
       setLlmTestStatus("error");
       setLlmTestError("No API key configured");
       toast.error("No API key configured");
+      return;
+    }
+
+    if (selectedProvider === "bedrock" && !bedrockConfig?.aws_access_key_id) {
+      setLlmTestStatus("error");
+      setLlmTestError("AWS credentials not configured");
+      toast.error("AWS credentials not configured");
       return;
     }
 
@@ -257,6 +269,7 @@ export function SettingsSheet({
         model,
         azure_config: selectedProvider === "azure_openai" ? azureConfig : null,
         langdock_config: selectedProvider === "langdock" ? langdockConfig : undefined,
+        bedrock_config: selectedProvider === "bedrock" ? bedrockConfig : undefined,
       });
 
       if (result.success) {
@@ -272,7 +285,7 @@ export function SettingsSheet({
       setLlmTestError(msg);
       toast.error(msg);
     }
-  }, [selectedProvider, selectedModel, azureConfig, langdockConfig, getKey]);
+  }, [selectedProvider, selectedModel, azureConfig, langdockConfig, bedrockConfig, getKey]);
 
   const [webhookTestStatus, setWebhookTestStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [webhookTestError, setWebhookTestError] = useState<string | null>(null);
@@ -548,6 +561,13 @@ export function SettingsSheet({
                     <>
                       <Separator />
                       <LangdockConfigForm config={langdockConfig} onConfigChange={onLangdockConfigChange} />
+                    </>
+                  ) : null}
+
+                  {selectedProvider === "bedrock" ? (
+                    <>
+                      <Separator />
+                      <BedrockConfigForm config={bedrockConfig} onConfigChange={onBedrockConfigChange} />
                     </>
                   ) : null}
 

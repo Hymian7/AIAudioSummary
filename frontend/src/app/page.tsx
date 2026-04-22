@@ -47,7 +47,7 @@ import { createTranscript, createSummary, extractKeyPoints, fillForm, testLlmCon
 import { getErrorMessage } from "@/lib/errors";
 import { extractDateFromFilename } from "@/lib/utils";
 import { parseConfigString, importSettings, configContainsApiKeys } from "@/lib/config-export";
-import type { AzureConfig, LangdockConfig, LLMProvider, SummaryInterval, LLMFeature, FeatureModelOverride, ConfigResponse, AppContext, FormTemplate, FormFieldType, TokenUsage, TranscriptUtterance, WebhookStandardTrigger, WebhookRealtimeTrigger } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, LLMProvider, SummaryInterval, LLMFeature, FeatureModelOverride, ConfigResponse, AppContext, FormTemplate, FormFieldType, TokenUsage, TranscriptUtterance, WebhookStandardTrigger, WebhookRealtimeTrigger } from "@/lib/types";
 import { buildWebhookPayload, buildTestWebhookPayload, fireWebhookWithToast, fireTranscriptWebhookWithTitle } from "@/lib/webhook";
 import { getContextWindow } from "@/lib/token-utils";
 import { APP_VERSION } from "@/lib/constants";
@@ -135,7 +135,7 @@ interface HomeInnerProps {
 }
 
 function HomeInner({ config, savePreferences, setStorageMode, serverPreferences, pendingImportConfig, authName }: HomeInnerProps) {
-  const { getKey, setKey, hasKey, getAzureConfig, getLangdockConfig, setLangdockConfig } = useApiKeys();
+  const { getKey, setKey, hasKey, getAzureConfig, getLangdockConfig, setLangdockConfig, getBedrockConfig, setBedrockConfig: persistBedrockConfig } = useApiKeys();
   const { theme, setTheme } = useTheme();
   const globalRecording = useGlobalRecording();
   const globalRealtime = useGlobalRealtime();
@@ -318,6 +318,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
     return getAzureConfig();
   });
   const [langdockConfig, setLangdockConfigState] = useState<LangdockConfig>(() => getLangdockConfig());
+  const [bedrockConfig, setBedrockConfigState] = useState<BedrockConfig | null>(() => getBedrockConfig());
 
   // Workflow state — initialize from persisted session data
   const [currentStep, setCurrentStepRaw] = useState<1 | 2 | 3>(() => {
@@ -667,6 +668,11 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
     setLangdockConfigState(config);
     setLangdockConfig(config);
   }, [setLangdockConfig]);
+
+  const handleBedrockConfigChange = useCallback((config: BedrockConfig) => {
+    setBedrockConfigState(config);
+    persistBedrockConfig(config);
+  }, [persistBedrockConfig]);
 
   const handleAutoKeyPointsChange = useCallback((enabled: boolean) => {
     setAutoKeyPointsEnabled(enabled);
@@ -1234,6 +1240,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
         model,
         azure_config: selectedProvider === "azure_openai" ? azureConfig : null,
         langdock_config: selectedProvider === "langdock" ? langdockConfig : undefined,
+        bedrock_config: selectedProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
       });
       if (result.success) {
         toast.success("LLM connection test passed");
@@ -1337,6 +1344,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
     getKey,
     azureConfig,
     langdockConfig,
+    bedrockConfig,
     transcript: chatbotTranscript || undefined,
     actionHandlers: chatbotActionsEnabled ? chatbotActionHandlers : undefined,
     hasAssemblyAiKey: hasKey("assemblyai"),
@@ -1387,6 +1395,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
           model: kpModel,
           azure_config: kpProvider === "azure_openai" ? azureConfig : null,
           langdock_config: kpProvider === "langdock" ? langdockConfig : undefined,
+          bedrock_config: kpProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
           transcript: transcriptForLLM,
           speakers,
           identify_speakers: speakerLabelsEnabled,
@@ -1499,11 +1508,12 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
       model: titleModel,
       azureConfig: titleProvider === "azure_openai" ? azureConfig : null,
       langdockConfig: titleProvider === "langdock" ? langdockConfig : undefined,
+      bedrockConfig: titleProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
       language: selectedLanguage,
       date: meetingDate,
       systemPrompt: webhookTitlePrompt || undefined,
     });
-  }, [webhookUrl, webhookSecret, transcript, meetingDate, selectedModel, selectedProvider, selectedLanguage, webhookUserArgs, webhookTranscriptTitle, webhookTitlePrompt, getKey, azureConfig, langdockConfig, resolveModelConfig]);
+  }, [webhookUrl, webhookSecret, transcript, meetingDate, selectedModel, selectedProvider, selectedLanguage, webhookUserArgs, webhookTranscriptTitle, webhookTitlePrompt, getKey, azureConfig, langdockConfig, bedrockConfig, resolveModelConfig]);
 
   // Automatically fire webhook after speaker mapping is applied (for transcript_mapped_and_summary trigger)
   const handleSpeakerMappingApplied = useCallback((mappings: Record<string, string>) => {
@@ -1533,11 +1543,12 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
       model: titleModel,
       azureConfig: titleProvider === "azure_openai" ? azureConfig : null,
       langdockConfig: titleProvider === "langdock" ? langdockConfig : undefined,
+      bedrockConfig: titleProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
       language: selectedLanguage,
       date: meetingDate,
       systemPrompt: webhookTitlePrompt || undefined,
     });
-  }, [webhookUrl, webhookSecret, webhookStandardTrigger, transcript, meetingDate, selectedModel, selectedProvider, selectedLanguage, webhookUserArgs, webhookTranscriptTitle, webhookTitlePrompt, getKey, azureConfig, langdockConfig, resolveModelConfig]);
+  }, [webhookUrl, webhookSecret, webhookStandardTrigger, transcript, meetingDate, selectedModel, selectedProvider, selectedLanguage, webhookUserArgs, webhookTranscriptTitle, webhookTitlePrompt, getKey, azureConfig, langdockConfig, bedrockConfig, resolveModelConfig]);
 
   // Step 1 → 2: file selected, start transcription
   const handleFileSelected = useCallback(
@@ -1611,6 +1622,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
             model: titleModel,
             azureConfig: titleProvider === "azure_openai" ? azureConfig : null,
             langdockConfig: titleProvider === "langdock" ? langdockConfig : undefined,
+            bedrockConfig: titleProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
             language: selectedLanguage,
             date: meetingDate,
             systemPrompt: webhookTitlePrompt || undefined,
@@ -1625,7 +1637,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
         setIsTranscribing(false);
       }
     },
-    [getKey, minSpeakers, maxSpeakers, selectedKeyterms, sessionPersistence.clearStandardSession, savePreferences, webhookUrl, webhookSecret, webhookStandardTrigger, meetingDate, selectedModel, selectedProvider, selectedLanguage, webhookTranscriptTitle, webhookTitlePrompt, azureConfig, langdockConfig, resolveModelConfig],
+    [getKey, minSpeakers, maxSpeakers, selectedKeyterms, sessionPersistence.clearStandardSession, savePreferences, webhookUrl, webhookSecret, webhookStandardTrigger, meetingDate, selectedModel, selectedProvider, selectedLanguage, webhookTranscriptTitle, webhookTitlePrompt, azureConfig, langdockConfig, bedrockConfig, resolveModelConfig],
   );
 
   // Skip upload: go directly to step 2 with empty transcript
@@ -1683,6 +1695,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
           model: summaryModel,
           azure_config: summaryProvider === "azure_openai" ? azureConfig : null,
           langdock_config: summaryProvider === "langdock" ? langdockConfig : undefined,
+          bedrock_config: summaryProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
           stream: true,
           system_prompt: selectedPrompt,
           text: transcriptForLLM,
@@ -1889,6 +1902,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
         model: resolvedFormOutputConfig.model,
         azure_config: resolvedFormOutputConfig.provider === "azure_openai" ? azureConfig ?? undefined : undefined,
         langdock_config: resolvedFormOutputConfig.provider === "langdock" ? langdockConfig : undefined,
+        bedrock_config: resolvedFormOutputConfig.provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
         transcript: transcriptForLLM,
         fields: template.fields,
         meeting_date: meetingDate ?? undefined,
@@ -1947,6 +1961,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
         model: resolvedFormOutputConfig.model,
         azure_config: resolvedFormOutputConfig.provider === "azure_openai" ? azureConfig ?? undefined : undefined,
         langdock_config: resolvedFormOutputConfig.provider === "langdock" ? langdockConfig : undefined,
+        bedrock_config: resolvedFormOutputConfig.provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
         transcript: transcriptForLLM,
         fields: template.fields,
         previous_values: formValues,
@@ -1990,6 +2005,8 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
         onAzureConfigChange={setAzureConfig}
         langdockConfig={langdockConfig}
         onLangdockConfigChange={handleLangdockConfigChange}
+        bedrockConfig={bedrockConfig}
+        onBedrockConfigChange={handleBedrockConfigChange}
         autoKeyPointsEnabled={autoKeyPointsEnabled}
         onAutoKeyPointsChange={handleAutoKeyPointsChange}
         speakerLabelsEnabled={speakerLabelsEnabled}
@@ -2099,6 +2116,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
             selectedModel={resolvedRealtimeConfig.model}
             azureConfig={azureConfig}
             langdockConfig={langdockConfig}
+            bedrockConfig={bedrockConfig}
             selectedLanguage={selectedLanguage}
             informalGerman={informalGerman}
             meetingDate={meetingDate ?? ""}
@@ -2120,6 +2138,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
             formOutputApiKey={getKey(resolvedFormOutputConfig.provider)}
             formOutputAzureConfig={azureConfig}
             formOutputLangdockConfig={langdockConfig}
+            formOutputBedrockConfig={bedrockConfig}
             formTemplates={formTemplates}
             onSaveFormTemplate={saveFormTemplate}
             onUpdateFormTemplate={updateFormTemplate}
@@ -2300,6 +2319,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
                         llmModel={resolvedPromptAssistantConfig.model}
                         llmAzureConfig={azureConfig}
                         llmLangdockConfig={langdockConfig}
+                        llmBedrockConfig={bedrockConfig}
                       />
                       {summary && (
                         <button
@@ -2330,6 +2350,7 @@ function HomeInner({ config, savePreferences, setStorageMode, serverPreferences,
                         llmModel={resolvedFormOutputConfig.model}
                         llmAzureConfig={azureConfig}
                         llmLangdockConfig={langdockConfig}
+                        llmBedrockConfig={bedrockConfig}
                       />
                       {Object.keys(formValues).length > 0 && (
                         <button

@@ -7,6 +7,7 @@ import type {
   LiveQuestion,
   LLMProvider,
   AzureConfig,
+  BedrockConfig,
   LangdockConfig,
 } from "@/lib/types";
 
@@ -16,6 +17,7 @@ export interface LiveQuestionsLlmConfig {
   model: string;
   azureConfig?: AzureConfig;
   langdockConfig?: LangdockConfig;
+  bedrockConfig?: BedrockConfig;
 }
 
 export interface UseLiveQuestionsOptions {
@@ -121,6 +123,7 @@ export function useLiveQuestions(options?: UseLiveQuestionsOptions) {
           model: llmConfig.model,
           azure_config: llmConfig.azureConfig,
           langdock_config: llmConfig.langdockConfig,
+          bedrock_config: llmConfig.bedrockConfig,
           transcript,
           questions: questionsToEvaluate,
         });

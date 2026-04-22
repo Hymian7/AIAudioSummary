@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { generateTemplate } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
-import type { AzureConfig, LangdockConfig, FormFieldDefinition, FormFieldType, FormTemplate, LLMProvider } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, FormFieldDefinition, FormFieldType, FormTemplate, LLMProvider } from "@/lib/types";
 
 const FIELD_TYPE_LABELS: Record<FormFieldType, string> = {
   string: "Text",
@@ -45,6 +45,7 @@ interface FormTemplateEditorProps {
   llmModel?: string;
   llmAzureConfig?: AzureConfig | null;
   llmLangdockConfig?: LangdockConfig;
+  llmBedrockConfig?: BedrockConfig | null;
 }
 
 export function FormTemplateEditor({
@@ -57,6 +58,7 @@ export function FormTemplateEditor({
   llmModel,
   llmAzureConfig,
   llmLangdockConfig,
+  llmBedrockConfig,
 }: FormTemplateEditorProps) {
   const isEditing = !!template;
 
@@ -135,6 +137,7 @@ export function FormTemplateEditor({
         model: llmModel!,
         azure_config: llmProvider === "azure_openai" ? llmAzureConfig ?? undefined : undefined,
         langdock_config: llmProvider === "langdock" ? llmLangdockConfig : undefined,
+        bedrock_config: llmProvider === "bedrock" ? llmBedrockConfig ?? undefined : undefined,
         description: aiDescription.trim(),
       });
 
@@ -159,7 +162,7 @@ export function FormTemplateEditor({
     } finally {
       setIsGenerating(false);
     }
-  }, [aiDescription, hasLlmConfig, llmProvider, llmApiKey, llmModel, llmAzureConfig, llmLangdockConfig, name]);
+  }, [aiDescription, hasLlmConfig, llmProvider, llmApiKey, llmModel, llmAzureConfig, llmLangdockConfig, llmBedrockConfig, name]);
 
   const handleSave = useCallback(() => {
     if (!name.trim()) return;

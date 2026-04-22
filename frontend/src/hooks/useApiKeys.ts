@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import type { AzureConfig, LangdockConfig, LLMProvider } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, LLMProvider } from "@/lib/types";
 
 const KEY_PREFIX = "aias:v1:apikey:";
 const AZURE_PREFIX = "aias:v1:azure:";
 const ASSEMBLYAI_KEY = "aias:v1:apikey:assemblyai";
 const LANGDOCK_CONFIG_KEY = "aias:v1:langdock_config";
+const BEDROCK_CONFIG_KEY = "aias:v1:bedrock_config";
 
 function safeGetItem(key: string): string {
   try {
@@ -57,6 +58,16 @@ export function useApiKeys() {
 
   const hasKey = useCallback(
     (provider: LLMProvider | "assemblyai"): boolean => {
+      if (provider === "bedrock") {
+        const raw = safeGetItem(BEDROCK_CONFIG_KEY);
+        if (!raw) return false;
+        try {
+          const cfg = JSON.parse(raw) as BedrockConfig;
+          return !!(cfg.aws_region && cfg.aws_access_key_id && cfg.aws_secret_access_key);
+        } catch {
+          return false;
+        }
+      }
       return getKey(provider).trim().length > 0;
     },
     [getKey],
@@ -101,5 +112,21 @@ export function useApiKeys() {
     safeSetItem(LANGDOCK_CONFIG_KEY, JSON.stringify(config));
   }, []);
 
-  return { getKey, setKey, hasKey, clearKey, getAzureConfig, setAzureConfig, getLangdockConfig, setLangdockConfig };
+  const getBedrockConfig = useCallback((): BedrockConfig | null => {
+    const raw = safeGetItem(BEDROCK_CONFIG_KEY);
+    if (!raw) return null;
+    try {
+      const cfg = JSON.parse(raw) as BedrockConfig;
+      if (!cfg.aws_region || !cfg.aws_access_key_id || !cfg.aws_secret_access_key) return null;
+      return cfg;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const setBedrockConfig = useCallback((config: BedrockConfig): void => {
+    safeSetItem(BEDROCK_CONFIG_KEY, JSON.stringify(config));
+  }, []);
+
+  return { getKey, setKey, hasKey, clearKey, getAzureConfig, setAzureConfig, getLangdockConfig, setLangdockConfig, getBedrockConfig, setBedrockConfig };
 }

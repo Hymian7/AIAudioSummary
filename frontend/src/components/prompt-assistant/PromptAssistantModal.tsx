@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { AzureConfig, LangdockConfig, LLMProvider } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, LLMProvider } from "@/lib/types";
 import { StepBasePrompt } from "./StepBasePrompt";
 import { StepQuestions } from "./StepQuestions";
 import { StepResult } from "./StepResult";
@@ -27,6 +27,7 @@ interface PromptAssistantModalProps {
   model: string;
   azureConfig: AzureConfig | null;
   langdockConfig?: LangdockConfig;
+  bedrockConfig?: BedrockConfig | null;
   currentPrompt?: string;
 }
 
@@ -73,6 +74,7 @@ export function PromptAssistantModal({
   model,
   azureConfig,
   langdockConfig,
+  bedrockConfig,
   currentPrompt = "",
 }: PromptAssistantModalProps) {
   const assistant = usePromptAssistant({
@@ -81,6 +83,7 @@ export function PromptAssistantModal({
     model,
     azureConfig,
     langdockConfig,
+    bedrockConfig,
     currentPrompt,
   });
 

@@ -108,6 +108,7 @@ class FormOutputService:
             api_key=request.api_key,
             azure_config=request.azure_config,
             langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         DynamicModel = _build_dynamic_model(request.fields)
@@ -160,6 +161,7 @@ FORM FIELDS:
             api_key=request.api_key,
             azure_config=request.azure_config,
             langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         agent: Agent[None, _GenerateTemplateOutput] = Agent(

@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { FormTemplateEditor } from "./FormTemplateEditor";
 import { CopyAsButton, SaveAsButton } from "@/components/ui/ContentActions";
 import { buildFormPayload } from "@/lib/content-formats";
-import type { AzureConfig, LangdockConfig, FormFieldDefinition, FormFieldType, FormTemplate, LLMProvider } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, FormFieldDefinition, FormFieldType, FormTemplate, LLMProvider } from "@/lib/types";
 
 function CompactFieldRow({
   field,
@@ -169,6 +169,7 @@ interface RealtimeFormOutputProps {
   llmModel?: string;
   llmAzureConfig?: AzureConfig | null;
   llmLangdockConfig?: LangdockConfig;
+  llmBedrockConfig?: BedrockConfig | null;
   onRefresh?: () => void;
   hasTranscript?: boolean;
 }
@@ -190,6 +191,7 @@ export function RealtimeFormOutput({
   llmModel,
   llmAzureConfig,
   llmLangdockConfig,
+  llmBedrockConfig,
   onRefresh,
   hasTranscript,
 }: RealtimeFormOutputProps) {
@@ -407,6 +409,7 @@ export function RealtimeFormOutput({
         llmModel={llmModel}
         llmAzureConfig={llmAzureConfig}
         llmLangdockConfig={llmLangdockConfig}
+        llmBedrockConfig={llmBedrockConfig}
       />
     </>
   );

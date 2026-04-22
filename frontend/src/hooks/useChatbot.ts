@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { marked } from "marked";
 import { chatbotChat } from "@/lib/api";
-import type { ChatMessageType, ChatRequest, LLMProvider, AzureConfig, LangdockConfig, FeatureModelOverride, ActionProposal, AppContext, TokenUsage } from "@/lib/types";
+import type { ChatMessageType, ChatRequest, LLMProvider, AzureConfig, BedrockConfig, LangdockConfig, FeatureModelOverride, ActionProposal, AppContext, TokenUsage } from "@/lib/types";
 
 const WS_URL = process.env.NEXT_PUBLIC_BACKEND_WS_URL || "ws://localhost:8080";
 const MIC_STORAGE_KEY = "aias:v1:mic_device_id";
@@ -40,6 +40,7 @@ interface UseChatbotProps {
   getKey: (provider: LLMProvider | "assemblyai") => string;
   azureConfig: AzureConfig | null;
   langdockConfig: LangdockConfig;
+  bedrockConfig: BedrockConfig | null;
   transcript?: string | null;
   actionHandlers?: Record<string, (params: Record<string, unknown>) => Promise<void>>;
   hasAssemblyAiKey: boolean;
@@ -117,6 +118,7 @@ export function useChatbot({
   getKey,
   azureConfig,
   langdockConfig,
+  bedrockConfig,
   transcript,
   actionHandlers,
   hasAssemblyAiKey,
@@ -229,6 +231,7 @@ export function useChatbot({
       api_key: apiKey,
       azure_config: provider === "azure_openai" ? azureConfig : null,
       langdock_config: provider === "langdock" ? langdockConfig : undefined,
+      bedrock_config: provider === "bedrock" ? bedrockConfig ?? undefined : undefined,
       qa_enabled: chatbotQAEnabled,
       transcript_enabled: chatbotTranscriptEnabled,
       actions_enabled: chatbotActionsEnabled,
@@ -382,7 +385,7 @@ export function useChatbot({
       abortRef.current = null;
       setIsStreaming(false);
     }
-  }, [isStreaming, hasApiKey, apiKey, messages, provider, model, azureConfig, langdockConfig, chatbotQAEnabled, chatbotTranscriptEnabled, chatbotActionsEnabled, transcript, actionHandlers, appContext]);
+  }, [isStreaming, hasApiKey, apiKey, messages, provider, model, azureConfig, langdockConfig, bedrockConfig, chatbotQAEnabled, chatbotTranscriptEnabled, chatbotActionsEnabled, transcript, actionHandlers, appContext]);
 
   // Persist messages when they change (skip during streaming and initial mount)
   const isFirstRenderRef = useRef(true);

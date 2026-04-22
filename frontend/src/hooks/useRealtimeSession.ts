@@ -6,6 +6,7 @@ import { useRealtimeSummary } from "./useRealtimeSummary";
 import type {
   LLMProvider,
   AzureConfig,
+  BedrockConfig,
   LangdockConfig,
   RealtimeSpeechModel,
   SummaryInterval,
@@ -19,6 +20,7 @@ export interface LlmConfig {
   model: string;
   azureConfig?: AzureConfig;
   langdockConfig?: LangdockConfig;
+  bedrockConfig?: BedrockConfig;
   systemPrompt: string;
   targetLanguage: string;
   informalGerman: boolean;

@@ -11,6 +11,7 @@ class LLMProvider(str, Enum):
     AZURE_OPENAI = "azure_openai"
     LANGDOCK = "langdock"
     PWC = "pwc"
+    BEDROCK = "bedrock"
 
 
 class AzureConfig(BaseModel):
@@ -23,12 +24,19 @@ class LangdockConfig(BaseModel):
     region: Literal["eu", "us"] = "eu"
 
 
+class BedrockConfig(BaseModel):
+    aws_region: str = Field(..., description="AWS region for Bedrock", examples=["us-east-1"])
+    aws_access_key_id: str = Field(..., min_length=1, description="AWS access key ID")
+    aws_secret_access_key: str = Field(..., min_length=1, description="AWS secret access key")
+
+
 class CreateSummaryRequest(BaseModel):
     provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field(..., min_length=1, description="Provider API key (sent per-request)")
+    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
     model: str = Field(..., min_length=1, description="Model identifier", examples=["gpt-4.1-mini", "claude-sonnet-4-5", "gemini-2.0-flash"])
     azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
     langdock_config: LangdockConfig = Field(default_factory=LangdockConfig, description="Langdock region config")
+    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
     stream: bool = Field(True, description="Whether to stream the response")
     system_prompt: str = Field(..., min_length=1, description="The system prompt (selected/edited template)")
     text: str = Field(..., min_length=1, description="The transcript text to summarize")
@@ -38,9 +46,13 @@ class CreateSummaryRequest(BaseModel):
     author: str | None = Field(None, description="Speaker selected as author/POV for the summary")
 
     @model_validator(mode="after")
-    def validate_azure_config(self):
+    def validate_provider_config(self):
         if self.provider == LLMProvider.AZURE_OPENAI and self.azure_config is None:
             raise ValueError("azure_config is required when provider is 'azure_openai'")
+        if self.provider == LLMProvider.BEDROCK and self.bedrock_config is None:
+            raise ValueError("bedrock_config is required when provider is 'bedrock'")
+        if self.provider != LLMProvider.BEDROCK and not self.api_key:
+            raise ValueError("api_key is required for non-Bedrock providers")
         return self
 
 
@@ -58,18 +70,23 @@ class CreateSummaryResponse(BaseModel):
 
 class ExtractKeyPointsRequest(BaseModel):
     provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field(..., min_length=1, description="Provider API key (sent per-request)")
+    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
     model: str = Field(..., min_length=1, description="Model identifier")
     azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
     langdock_config: LangdockConfig = Field(default_factory=LangdockConfig, description="Langdock region config")
+    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
     transcript: str = Field(..., min_length=1, description="The transcript text to extract key points from")
     speakers: list[str] = Field(..., min_length=1, description="List of speaker labels found in the transcript")
     identify_speakers: bool = Field(False, description="When True, also attempt to identify real speaker names from the transcript")
 
     @model_validator(mode="after")
-    def validate_azure_config(self):
+    def validate_provider_config(self):
         if self.provider == LLMProvider.AZURE_OPENAI and self.azure_config is None:
             raise ValueError("azure_config is required when provider is 'azure_openai'")
+        if self.provider == LLMProvider.BEDROCK and self.bedrock_config is None:
+            raise ValueError("bedrock_config is required when provider is 'bedrock'")
+        if self.provider != LLMProvider.BEDROCK and not self.api_key:
+            raise ValueError("api_key is required for non-Bedrock providers")
         return self
 
 
@@ -80,15 +97,20 @@ class ExtractKeyPointsResponse(BaseModel):
 
 class TestLLMRequest(BaseModel):
     provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field(..., min_length=1, description="Provider API key")
+    api_key: str = Field("", description="Provider API key, not required for Bedrock")
     model: str = Field(..., min_length=1, description="Model identifier")
     azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
     langdock_config: LangdockConfig = Field(default_factory=LangdockConfig, description="Langdock region config")
+    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
 
     @model_validator(mode="after")
-    def validate_azure_config(self):
+    def validate_provider_config(self):
         if self.provider == LLMProvider.AZURE_OPENAI and self.azure_config is None:
             raise ValueError("azure_config is required when provider is 'azure_openai'")
+        if self.provider == LLMProvider.BEDROCK and self.bedrock_config is None:
+            raise ValueError("bedrock_config is required when provider is 'bedrock'")
+        if self.provider != LLMProvider.BEDROCK and not self.api_key:
+            raise ValueError("api_key is required for non-Bedrock providers")
         return self
 
 
@@ -99,19 +121,24 @@ class TestLLMResponse(BaseModel):
 
 class GenerateTitleRequest(BaseModel):
     provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field(..., min_length=1, description="Provider API key")
+    api_key: str = Field("", description="Provider API key, not required for Bedrock")
     model: str = Field(..., min_length=1, description="Model identifier")
     azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
     langdock_config: LangdockConfig = Field(default_factory=LangdockConfig, description="Langdock region config")
+    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
     transcript: str = Field(..., min_length=1, description="The transcript text to generate a title from")
     target_language: str = Field("English", description="Output language for the title")
     date: datetime.date | None = Field(None, description="Meeting date")
     system_prompt: str | None = Field(None, description="Optional custom system prompt for title generation")
 
     @model_validator(mode="after")
-    def validate_azure_config(self):
+    def validate_provider_config(self):
         if self.provider == LLMProvider.AZURE_OPENAI and self.azure_config is None:
             raise ValueError("azure_config is required when provider is 'azure_openai'")
+        if self.provider == LLMProvider.BEDROCK and self.bedrock_config is None:
+            raise ValueError("bedrock_config is required when provider is 'bedrock'")
+        if self.provider != LLMProvider.BEDROCK and not self.api_key:
+            raise ValueError("api_key is required for non-Bedrock providers")
         return self
 
 

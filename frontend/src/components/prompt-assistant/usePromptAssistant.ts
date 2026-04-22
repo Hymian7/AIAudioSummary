@@ -6,6 +6,7 @@ import { getErrorMessage } from "@/lib/errors";
 import type {
   AssistantQuestion,
   AzureConfig,
+  BedrockConfig,
   LangdockConfig,
   LLMProvider,
 } from "@/lib/types";
@@ -18,6 +19,7 @@ interface UsePromptAssistantOptions {
   model: string;
   azureConfig: AzureConfig | null;
   langdockConfig?: LangdockConfig;
+  bedrockConfig?: BedrockConfig | null;
   currentPrompt?: string;
 }
 
@@ -50,6 +52,7 @@ export function usePromptAssistant({
   model,
   azureConfig,
   langdockConfig,
+  bedrockConfig,
   currentPrompt = "",
 }: UsePromptAssistantOptions): UsePromptAssistantReturn {
   const [currentStep, setCurrentStep] = useState<WizardStep>("base_prompt");
@@ -68,8 +71,9 @@ export function usePromptAssistant({
       model,
       azure_config: azureConfig,
       langdock_config: langdockConfig,
+      bedrock_config: bedrockConfig ?? undefined,
     }),
-    [provider, apiKey, model, azureConfig, langdockConfig],
+    [provider, apiKey, model, azureConfig, langdockConfig, bedrockConfig],
   );
 
   const submitBasePrompt = useCallback(async () => {

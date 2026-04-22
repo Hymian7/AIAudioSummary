@@ -12,8 +12,10 @@ from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google import GoogleProvider
+from pydantic_ai.models.bedrock import BedrockConverseModel
+from pydantic_ai.providers.bedrock import BedrockProvider
 
-from models.llm import LLMProvider, AzureConfig, LangdockConfig, CreateSummaryRequest, ExtractKeyPointsRequest, ExtractKeyPointsResponse, TestLLMRequest, GenerateTitleRequest, TokenUsage
+from models.llm import LLMProvider, AzureConfig, LangdockConfig, BedrockConfig, CreateSummaryRequest, ExtractKeyPointsRequest, ExtractKeyPointsResponse, TestLLMRequest, GenerateTitleRequest, TokenUsage
 from service.misc.core import MiscService
 
 
@@ -81,7 +83,8 @@ class LLMService:
 
     def _create_model(self, provider: LLMProvider, model_name: str, api_key: str,
                       azure_config: AzureConfig | None = None,
-                      langdock_config: LangdockConfig | None = None):
+                      langdock_config: LangdockConfig | None = None,
+                      bedrock_config: BedrockConfig | None = None):
         """Create the appropriate pydantic-ai model based on the provider."""
         if provider == LLMProvider.OPENAI:
             return OpenAIChatModel(
@@ -149,6 +152,15 @@ class LLMService:
                     api_key=api_key
                 )
                 return AnthropicModel(model_name, provider=AnthropicProvider(anthropic_client=client))
+        elif provider == LLMProvider.BEDROCK:
+            return BedrockConverseModel(
+                model_name,
+                provider=BedrockProvider(
+                    region_name=bedrock_config.aws_region,
+                    aws_access_key_id=bedrock_config.aws_access_key_id,
+                    aws_secret_access_key=bedrock_config.aws_secret_access_key,
+                ),
+            )
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
@@ -209,7 +221,8 @@ class LLMService:
             model_name=model_name,
             api_key=request.api_key,
             azure_config=request.azure_config,
-            langdock_config=request.langdock_config
+            langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         system_prompt, user_prompt = await self.build_prompt(
@@ -256,7 +269,8 @@ class LLMService:
             model_name=model_name,
             api_key=request.api_key,
             azure_config=request.azure_config,
-            langdock_config=request.langdock_config
+            langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         speakers_list = ", ".join(request.speakers)
@@ -342,6 +356,7 @@ class LLMService:
         model = self._create_model(
             request.provider, model_name, request.api_key,
             request.azure_config, request.langdock_config,
+            request.bedrock_config,
         )
         title, usage = await self._generate_title(
             model, request.provider, model_name,
@@ -430,6 +445,7 @@ class LLMService:
             api_key=request.api_key,
             azure_config=request.azure_config,
             langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         agent = Agent(

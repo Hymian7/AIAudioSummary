@@ -17,6 +17,7 @@ import { ProviderSelector } from "./ProviderSelector";
 import { ModelSelector } from "./ModelSelector";
 import { AzureConfigForm } from "./AzureConfigForm";
 import { LangdockConfigForm } from "./LangdockConfigForm";
+import { BedrockConfigForm } from "./BedrockConfigForm";
 import { useApiKeys } from "@/hooks/useApiKeys";
 
 interface FeatureModelConfigModalProps {
@@ -39,7 +40,7 @@ export function FeatureModelConfigModal({
   children,
 }: FeatureModelConfigModalProps) {
   const [open, setOpen] = useState(false);
-  const { getAzureConfig, setAzureConfig, getLangdockConfig, setLangdockConfig } = useApiKeys();
+  const { getAzureConfig, setAzureConfig, getLangdockConfig, setLangdockConfig, getBedrockConfig, setBedrockConfig } = useApiKeys();
 
   const [localProvider, setLocalProvider] = useState<LLMProvider>(
     override?.provider ?? defaultProvider,
@@ -127,6 +128,16 @@ export function FeatureModelConfigModal({
               <LangdockConfigForm
                 config={getLangdockConfig()}
                 onConfigChange={setLangdockConfig}
+              />
+            </>
+          ) : null}
+
+          {localProvider === "bedrock" ? (
+            <>
+              <Separator />
+              <BedrockConfigForm
+                config={getBedrockConfig()}
+                onConfigChange={setBedrockConfig}
               />
             </>
           ) : null}

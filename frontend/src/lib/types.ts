@@ -1,6 +1,6 @@
 // === Enums ===
 
-export type LLMProvider = "openai" | "anthropic" | "gemini" | "azure_openai" | "langdock" | "pwc";
+export type LLMProvider = "openai" | "anthropic" | "gemini" | "azure_openai" | "langdock" | "pwc" | "bedrock";
 
 export type RealtimeSpeechModel = "fast" | "precise";
 
@@ -29,6 +29,7 @@ export interface ProviderInfo {
   name: string;
   models: string[];
   requires_azure_config: boolean;
+  requires_bedrock_config?: boolean;
   model_context_windows?: Record<string, number>;
 }
 
@@ -71,6 +72,7 @@ export interface TestLLMRequest {
   model: string;
   azure_config: AzureConfig | null;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
 }
 
 export interface TestLLMResponse {
@@ -90,12 +92,19 @@ export interface LangdockConfig {
   region: "eu" | "us";
 }
 
+export interface BedrockConfig {
+  aws_region: string;
+  aws_access_key_id: string;
+  aws_secret_access_key: string;
+}
+
 export interface CreateSummaryRequest {
   provider: LLMProvider;
   api_key: string;
   model: string;
   azure_config: AzureConfig | null;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   stream: boolean;
   system_prompt: string;
   text: string;
@@ -119,6 +128,7 @@ export interface ExtractKeyPointsRequest {
   model: string;
   azure_config: AzureConfig | null;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   transcript: string;
   speakers: string[];
   identify_speakers?: boolean;
@@ -165,6 +175,7 @@ export interface PromptAssistantAnalyzeRequest {
   model: string;
   azure_config: AzureConfig | null;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   base_prompt?: string;
 }
 
@@ -178,6 +189,7 @@ export interface PromptAssistantGenerateRequest {
   model: string;
   azure_config: AzureConfig | null;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   base_prompt?: string;
   answers: Record<string, string | string[]>;
   additional_notes?: string;
@@ -235,6 +247,7 @@ export interface IncrementalSummaryRequest {
   model: string;
   azure_config?: AzureConfig;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   system_prompt: string;
   full_transcript: string;
   previous_summary?: string;
@@ -270,6 +283,7 @@ export interface EvaluateQuestionsRequest {
   model: string;
   azure_config?: AzureConfig;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   transcript: string;
   questions: { id: string; question: string }[];
 }
@@ -331,6 +345,7 @@ export interface ChatRequest {
   api_key: string;
   azure_config: AzureConfig | null;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   qa_enabled: boolean;
   transcript_enabled: boolean;
   actions_enabled: boolean;
@@ -375,6 +390,7 @@ export interface GenerateTitleRequest {
   model: string;
   azure_config: AzureConfig | null;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   transcript: string;
   target_language: string;
   date: string | null;
@@ -530,6 +546,7 @@ export interface FillFormRequest {
   model: string;
   azure_config?: AzureConfig;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   transcript: string;
   fields: FormFieldDefinition[];
   previous_values?: Record<string, unknown>;
@@ -546,6 +563,7 @@ export interface GenerateTemplateRequest {
   model: string;
   azure_config?: AzureConfig;
   langdock_config?: LangdockConfig;
+  bedrock_config?: BedrockConfig;
   description: string;
 }
 

@@ -1,14 +1,15 @@
 from pydantic import BaseModel, Field, model_validator
 
-from models.llm import AzureConfig, LangdockConfig, LLMProvider, TokenUsage
+from models.llm import AzureConfig, LangdockConfig, BedrockConfig, LLMProvider, TokenUsage
 
 
 class IncrementalSummaryRequest(BaseModel):
     provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field(..., min_length=1, description="Provider API key (sent per-request)")
+    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
     model: str = Field(..., min_length=1, description="Model identifier")
     azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
     langdock_config: LangdockConfig = Field(default_factory=LangdockConfig, description="Langdock region config")
+    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
     system_prompt: str = Field(..., min_length=1, description="The system prompt (selected/edited template)")
     full_transcript: str = Field(..., min_length=1, description="The full accumulated transcript so far")
     previous_summary: str | None = Field(None, description="The previous summary to update incrementally")
@@ -20,9 +21,11 @@ class IncrementalSummaryRequest(BaseModel):
     author: str | None = Field(None, description="Speaker selected as author/POV for the summary")
 
     @model_validator(mode="after")
-    def validate_azure_config(self):
+    def validate_provider_config(self):
         if self.provider == LLMProvider.AZURE_OPENAI and self.azure_config is None:
             raise ValueError("azure_config is required when provider is 'azure_openai'")
+        if self.provider == LLMProvider.BEDROCK and self.bedrock_config is None:
+            raise ValueError("bedrock_config is required when provider is 'bedrock'")
         return self
 
 

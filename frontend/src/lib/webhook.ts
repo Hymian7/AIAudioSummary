@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 
 import { fireWebhook, generateTitle } from "./api";
-import type { AzureConfig, LangdockConfig, LLMProvider, TokenUsage, WebhookPayload } from "./types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, LLMProvider, TokenUsage, WebhookPayload } from "./types";
 
 /**
  * Strip markdown formatting to produce plain text.
@@ -169,6 +169,7 @@ export function fireTranscriptWebhookWithTitle(
     model: string;
     azureConfig: AzureConfig | null;
     langdockConfig?: LangdockConfig;
+    bedrockConfig?: BedrockConfig | null;
     language: string;
     date: string | null;
     systemPrompt?: string;
@@ -188,6 +189,7 @@ export function fireTranscriptWebhookWithTitle(
     model: titleConfig.model,
     azure_config: titleConfig.azureConfig,
     langdock_config: titleConfig.langdockConfig,
+    bedrock_config: titleConfig.bedrockConfig ?? undefined,
     transcript: payloadParams.transcript,
     target_language: titleConfig.language,
     date: titleConfig.date,

@@ -1,6 +1,6 @@
 from enum import Enum
 from pydantic import BaseModel, Field
-from models.llm import LLMProvider, AzureConfig, LangdockConfig, TokenUsage
+from models.llm import LLMProvider, AzureConfig, LangdockConfig, BedrockConfig, TokenUsage
 
 
 class ChatRole(str, Enum):
@@ -74,9 +74,10 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(..., min_length=1)
     provider: LLMProvider = Field(..., description="Which LLM provider to use")
     model: str = Field(..., min_length=1)
-    api_key: str = Field(..., min_length=1)
+    api_key: str = Field("", description="Provider API key, not required for Bedrock")
     azure_config: AzureConfig | None = None
     langdock_config: LangdockConfig = Field(default_factory=LangdockConfig)
+    bedrock_config: BedrockConfig | None = None
     qa_enabled: bool = True
     transcript_enabled: bool = True
     actions_enabled: bool = True

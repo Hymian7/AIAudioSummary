@@ -8,6 +8,7 @@ import type {
   FormFieldDefinition,
   LLMProvider,
   AzureConfig,
+  BedrockConfig,
   LangdockConfig,
 } from "@/lib/types";
 
@@ -17,6 +18,7 @@ export interface FormOutputLlmConfig {
   model: string;
   azureConfig?: AzureConfig;
   langdockConfig?: LangdockConfig;
+  bedrockConfig?: BedrockConfig;
 }
 
 export interface UseFormOutputOptions {
@@ -64,6 +66,7 @@ export function useFormOutput(options?: UseFormOutputOptions) {
           model: llmConfig.model,
           azure_config: llmConfig.azureConfig,
           langdock_config: llmConfig.langdockConfig,
+          bedrock_config: llmConfig.bedrockConfig,
           transcript,
           fields,
           previous_values: hasPrevious ? currentValues : undefined,

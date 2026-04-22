@@ -86,6 +86,7 @@ async def create_incremental_summary(
             api_key=request.api_key,
             azure_config=request.azure_config,
             langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         # Detect language from the transcript; substitute {language} in the prompt

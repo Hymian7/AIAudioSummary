@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PromptAssistantModal } from "@/components/prompt-assistant/PromptAssistantModal";
-import type { AzureConfig, LangdockConfig, LLMProvider, PromptTemplate, LanguageOption } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, LLMProvider, PromptTemplate, LanguageOption } from "@/lib/types";
 
 interface PromptEditorProps {
   templates: PromptTemplate[];
@@ -56,6 +56,7 @@ interface PromptEditorProps {
   llmModel?: string;
   llmAzureConfig?: AzureConfig | null;
   llmLangdockConfig?: LangdockConfig;
+  llmBedrockConfig?: BedrockConfig | null;
 }
 
 export function PromptEditor({
@@ -82,6 +83,7 @@ export function PromptEditor({
   llmModel,
   llmAzureConfig,
   llmLangdockConfig,
+  llmBedrockConfig,
 }: PromptEditorProps) {
   const [assistantOpen, setAssistantOpen] = useState(false);
 
@@ -413,6 +415,7 @@ export function PromptEditor({
           model={llmModel}
           azureConfig={llmAzureConfig ?? null}
           langdockConfig={llmLangdockConfig}
+          bedrockConfig={llmBedrockConfig}
           currentPrompt={selectedPrompt}
         />
       ) : null}

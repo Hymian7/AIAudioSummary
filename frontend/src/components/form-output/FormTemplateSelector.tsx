@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormTemplateEditor } from "./FormTemplateEditor";
-import type { AzureConfig, LangdockConfig, FormTemplate, LLMProvider } from "@/lib/types";
+import type { AzureConfig, BedrockConfig, LangdockConfig, FormTemplate, LLMProvider } from "@/lib/types";
 
 const FIELD_TYPE_LABELS: Record<string, string> = {
   string: "Text",
@@ -44,6 +44,7 @@ interface FormTemplateSelectorProps {
   llmModel?: string;
   llmAzureConfig?: AzureConfig | null;
   llmLangdockConfig?: LangdockConfig;
+  llmBedrockConfig?: BedrockConfig | null;
 }
 
 export function FormTemplateSelector({
@@ -63,6 +64,7 @@ export function FormTemplateSelector({
   llmModel,
   llmAzureConfig,
   llmLangdockConfig,
+  llmBedrockConfig,
 }: FormTemplateSelectorProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<FormTemplate | null>(
@@ -228,6 +230,7 @@ export function FormTemplateSelector({
         llmModel={llmModel}
         llmAzureConfig={llmAzureConfig}
         llmLangdockConfig={llmLangdockConfig}
+        llmBedrockConfig={llmBedrockConfig}
       />
     </>
   );

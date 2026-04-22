@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from models.llm import AzureConfig, LangdockConfig, LLMProvider
+from models.llm import AzureConfig, LangdockConfig, BedrockConfig, LLMProvider
 
 
 class QuestionInput(BaseModel):
@@ -10,10 +10,11 @@ class QuestionInput(BaseModel):
 
 class EvaluateQuestionsRequest(BaseModel):
     provider: LLMProvider = Field(..., description="Which LLM provider to use")
-    api_key: str = Field(..., min_length=1, description="Provider API key (sent per-request)")
+    api_key: str = Field("", description="Provider API key (sent per-request, not required for Bedrock)")
     model: str = Field(..., min_length=1, description="Model identifier")
     azure_config: AzureConfig | None = Field(None, description="Required only when provider is 'azure_openai'")
     langdock_config: LangdockConfig | None = Field(None, description="Langdock region config")
+    bedrock_config: BedrockConfig | None = Field(None, description="Required only when provider is 'bedrock'")
     transcript: str = Field(..., min_length=1, description="Full transcript text to evaluate against")
     questions: list[QuestionInput] = Field(..., description="Unanswered questions to evaluate")
 

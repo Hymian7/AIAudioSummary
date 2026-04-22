@@ -91,6 +91,7 @@ class PromptAssistantService:
             api_key=request.api_key,
             azure_config=request.azure_config,
             langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         if request.base_prompt and request.base_prompt.strip():
@@ -146,6 +147,7 @@ class PromptAssistantService:
             api_key=request.api_key,
             azure_config=request.azure_config,
             langdock_config=request.langdock_config,
+            bedrock_config=request.bedrock_config,
         )
 
         answers_text = "\n".join(

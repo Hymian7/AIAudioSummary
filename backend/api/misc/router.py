@@ -90,6 +90,25 @@ PROVIDERS = [
             "vertex_ai.anthropic.claude-sonnet-4-6": 200_000,
         },
     ),
+    ProviderInfo(
+        id="bedrock",
+        name="AWS Bedrock",
+        models=[
+            "anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "anthropic.claude-haiku-4-5-20250929-v1:0",
+            "amazon.nova-pro-v1:0",
+            "amazon.nova-lite-v1:0",
+            "amazon.nova-micro-v1:0",
+        ],
+        requires_bedrock_config=True,
+        model_context_windows={
+            "anthropic.claude-sonnet-4-5-20250929-v1:0": 200_000,
+            "anthropic.claude-haiku-4-5-20250929-v1:0": 200_000,
+            "amazon.nova-pro-v1:0": 300_000,
+            "amazon.nova-lite-v1:0": 300_000,
+            "amazon.nova-micro-v1:0": 128_000,
+        },
+    ),
 ]
 
 LANGUAGES = [
