@@ -153,7 +153,7 @@ export function ApiKeyManager({ providers, onKeyChange }: ApiKeyManagerProps) {
         <h3 className="text-sm font-semibold text-foreground-secondary">
           LLM Providers
         </h3>
-        {providers.map((provider) => (
+        {providers.filter((p) => p.id !== "bedrock").map((provider) => (
           <KeyInput
             key={provider.id}
             label={`${provider.name} API Key`}
