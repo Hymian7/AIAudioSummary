@@ -270,7 +270,7 @@ export function SettingsSheet({
           api_key: apiKey,
           azure_config: selectedProvider === "azure_openai" ? azureConfig : null,
           langdock_config: selectedProvider === "langdock" ? langdockConfig : undefined,
-          bedrock_config: selectedProvider === "bedrock" ? bedrockConfig : undefined,
+          bedrock_config: selectedProvider === "bedrock" ? bedrockConfig ?? undefined : undefined,
         },
       });
 
