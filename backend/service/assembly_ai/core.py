@@ -56,7 +56,10 @@ class AssemblyAIService:
             language_detection=language_detection,
             language_code=language_code,
             speaker_labels=True,
-            speaker_options={"min_speakers_expected": min_speaker, "max_speakers_expected": max_speaker},
+            speaker_options=aai.SpeakerOptions(
+                min_speakers_expected=min_speaker,
+                max_speakers_expected=max_speaker,
+            ),
         )
         if keyterms_prompt:
             config_kwargs["keyterms_prompt"] = keyterms_prompt

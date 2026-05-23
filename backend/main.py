@@ -1,4 +1,3 @@
-import asyncio
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -23,11 +22,7 @@ from api.webhook.router import webhook_router
 
 
 def _run_migrations_sync() -> None:
-    """Run Alembic migrations synchronously.
-
-    Designed to be called from a thread executor so that asyncio.run()
-    inside alembic/env.py gets its own clean event loop.
-    """
+    """Run Alembic migrations synchronously on the main thread before uvicorn starts."""
     from alembic.config import Config as AlembicConfig
     from alembic import command
 
@@ -65,19 +60,15 @@ async def _seed_admins() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if config.database_url:
-        loop = asyncio.get_event_loop()
         try:
-            logger.info("Running database migrations...")
-            await loop.run_in_executor(None, _run_migrations_sync)
-            logger.info("Database migrations complete.")
             await _seed_admins()
             from utils.seed import seed_dev_user
             await seed_dev_user()
         except Exception as e:
-            logger.error(f"Database startup failed: {e}")
+            logger.error(f"Database seeding failed: {e}")
             raise
     else:
-        logger.warning("DATABASE_URL not set — skipping database setup.")
+        logger.warning("DATABASE_URL not set — skipping database seeding.")
     yield
 
 
@@ -116,5 +107,11 @@ def read_root():
 if __name__ == "__main__":
     logger.debug("Config loaded successfully")
     environment = os.environ.get("ENVIRONMENT", "development")
+
+    if config.database_url:
+        logger.info("Running database migrations...")
+        _run_migrations_sync()
+        logger.info("Database migrations complete.")
+
     uvicorn.run("main:app", host="0.0.0.0", port=8080,
                 log_level="info", reload=(environment == "development"))
